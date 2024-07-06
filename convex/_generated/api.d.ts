@@ -14,7 +14,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as myFunctions from "../myFunctions.js";
+import type * as canvaAuth from "../canvaAuth.js";
+import type * as userManagement from "../userManagement.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -25,7 +26,8 @@ import type * as myFunctions from "../myFunctions.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  myFunctions: typeof myFunctions;
+  canvaAuth: typeof canvaAuth;
+  userManagement: typeof userManagement;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
