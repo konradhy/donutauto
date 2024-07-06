@@ -1,19 +1,23 @@
 // MainDashboard.tsx
-"use client"
-import React from 'react';
-import {StickyHeader} from "../_components/sticky-header"
+"use client";
+import React from "react";
+import { StickyHeader } from "../_components/sticky-header";
 import { SignInButton, UserButton } from "@clerk/clerk-react";
-
+import { ConnectButton } from "../_components/connect-button";
 
 const MainDashboard = () => {
   return (
     <div>
-        <StickyHeader className="flex justify-between p-2 ">
-            <h1>Dashboard</h1>
-            <UserButton />
-        </StickyHeader>
+      <StickyHeader className="flex justify-between p-2 ">
+        <h1>Dashboard</h1>
+        <UserButton />
+        <ConnectButton />
+      </StickyHeader>
       <h1>Main Dashboard</h1>
-      <p>Welcome to your dashboard. Here you can find quick links to your most used features.</p>
+      <p>
+        Welcome to your dashboard. Here you can find quick links to your most
+        used features.
+      </p>
       <div>
         <button>View Profile</button>
         <button>Settings</button>
