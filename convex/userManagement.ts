@@ -17,45 +17,38 @@ To do:
  * Creates a new user in the database.
  * This should be called when a new user signs up through Clerk.
  */
-export const createUser = mutation({
-  args: {
-    email: v.string(),
-    name: v.optional(v.string()),
-    tokenIdentifier: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // Check if the user is authenticated
+export const store = mutation({
+  args: {},
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new ConvexError("Not authenticated");
+      throw new Error("Called storeUser without authentication present");
     }
 
-    // Check if a user with this email already exists
-    const existingUser = await ctx.db
+    const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
+      .withIndex("by_token_identifier", (q) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier),
+      )
+      .unique();
 
-    if (existingUser) {
-      throw new ConvexError("User with this email already exists");
+    if (user !== null) {
+      if (user.name !== identity.name) {
+        await ctx.db.patch(user._id, { name: identity.name });
+      }
+      return user._id;
     }
 
-    // Create the new user
-    const userId = await ctx.db.insert("users", {
-      email: args.email,
-      name: args.name,
-      tokenIdentifier: args.tokenIdentifier,
+    return await ctx.db.insert("users", {
+      name: identity.name!,
+      email: identity.email!,
+      tokenIdentifier: identity.tokenIdentifier,
       isCanvaConnected: false,
-      role: "user", // Default role
+      role: "user",
     });
-
-    return userId;
   },
 });
 
-/**
- * Retrieves a user by their email address.
- */
 export const getUserByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
@@ -68,5 +61,21 @@ export const getUserByEmail = query({
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
+  },
+});
+
+export const getUser = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Not authenticated");
+    }
+
+    return await ctx.db
+      .query("users")
+      .withIndex("by_token_identifier", (q) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier),
+      )
+      .unique();
   },
 });

@@ -13,6 +13,7 @@ export default defineSchema({
     isCanvaConnected: v.boolean(),
     role: v.optional(v.string()), // Admin, User, etc.
     tokenIdentifier: v.string(),
+    lastCanvaTokenUpdate: v.optional(v.number()),
   })
     .index("by_email", ["email"])
     .index("by_token_identifier", ["tokenIdentifier"]),
