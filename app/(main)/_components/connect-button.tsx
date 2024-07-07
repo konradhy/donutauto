@@ -11,65 +11,36 @@
  *    - Use Convex for server-side data that requires real-time synchronization.
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link2Off } from "lucide-react";
 import { CanvaIcon } from "@/components/canva-icon";
-import { useCanvaAuthStore } from "@/lib/store/useCanvaAuthStore";
+
 import { getCanvaAuthorization, getUser, revoke } from "@/lib/services/auth";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 export const ConnectButton = () => {
-  const {
-    isAuthorized,
-    setIsAuthorized,
-    displayName,
-    setDisplayName,
-    setShowSuccessfulConnectionAlert,
-    addError,
-    checkAuthorization,
-  } = useCanvaAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
   // Add Convex query to check isConnected status
   const isConnected = useQuery(api.canvaAuth.isConnected);
 
-  useEffect(() => {
-    checkAuthorization();
-  }, [checkAuthorization]);
-
-  useEffect(() => {
-    const getAndSetDisplayName = async () => {
-      if (isAuthorized) {
-        try {
-          const {
-            profile: { display_name },
-          } = await getUser();
-          if (display_name) setDisplayName(display_name);
-        } catch (error) {
-          console.error(error);
-          addError("Failed to fetch user data");
-        }
-      }
-    };
-    getAndSetDisplayName();
-  }, [isAuthorized, setDisplayName, addError]);
-
   const onConnectClick = async () => {
     try {
       setIsLoading(true);
+
       const result = await getCanvaAuthorization();
+
       if (result) {
-        await checkAuthorization(); // Re-check authorization status
-        setShowSuccessfulConnectionAlert(true);
+        if (isConnected) {
+          //toast message
+        }
       } else {
         throw new Error("Authorization failed");
       }
     } catch (error) {
       console.error(error);
-      setIsAuthorized(false);
-      addError("Authorization has failed. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -78,17 +49,18 @@ export const ConnectButton = () => {
   const onRevokeClick = async () => {
     try {
       const result = await revoke();
+      console.log("result", result);
 
-      if (result) {
-        setIsAuthorized(false);
-        setDisplayName("");
-        setShowSuccessfulConnectionAlert(false);
+      if (result.success) {
+        //toast message
+        console.log("Authorization revoked");
       } else {
-        throw new Error("Failed to revoke authorization");
+        console.error("Failed to revoke authorization:", result.message);
       }
     } catch (error) {
-      console.error(error);
-      addError("Failed to disconnect from Canva");
+      console.error("Error during revoke:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

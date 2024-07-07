@@ -1,10 +1,10 @@
-// app/api/canva/callback/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { OauthService } from "@/lib/canva-api";
 import { getBasicAuthClient } from "@/lib/canva-api/client";
 import { api } from "@/convex/_generated/api";
-import { fetchMutation } from "convex/nextjs";
+import { ConvexHttpClient } from "convex/browser";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export const AUTH_COOKIE_NAME = "aut";
 export const OAUTH_STATE_COOKIE_NAME = "oas";
@@ -30,8 +30,9 @@ export async function GET(request: NextRequest) {
 
   if (!code || !state || state !== storedState || !codeVerifier) {
     return NextResponse.redirect(
-      getAbsoluteUrl(
+      new URL(
         `/api/canva/auth-failure?error=${encodeURIComponent("Invalid request parameters")}`,
+        request.url,
       ),
     );
   }
@@ -53,8 +54,9 @@ export async function GET(request: NextRequest) {
 
     if (exchangeResult.error) {
       return NextResponse.redirect(
-        getAbsoluteUrl(
-          `/api/canva/auth-failure?error=${encodeURIComponent(JSON.stringify(exchangeResult.error))}`,
+        new URL(
+          `/canva/auth-failure?error=${encodeURIComponent(JSON.stringify(exchangeResult.error))}`,
+          request.url,
         ),
       );
     }
@@ -68,21 +70,18 @@ export async function GET(request: NextRequest) {
       throw new Error("No token identifier found");
     }
 
-    await fetchMutation(api.canvaAuth.storeAccessToken, {
+    await convex.mutation(api.canvaAuth.storeAccessToken, {
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
       expiresIn: tokenData.expires_in,
-      tokenIdentifier: tokenIdentifier || "error token identifier",
+      tokenIdentifier: tokenIdentifier,
     });
 
-    //store access token in convex
-
     const response = NextResponse.redirect(
-      getAbsoluteUrl("/api/canva/auth-success"),
+      new URL("/canva/auth-success", request.url),
     );
 
     // Clear the OAuth cookies
-
     response.cookies.set(OAUTH_STATE_COOKIE_NAME, "", { maxAge: 0, path: "/" });
     response.cookies.set(OAUTH_CODE_VERIFIER_COOKIE_NAME, "", {
       maxAge: 0,
@@ -91,10 +90,12 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
+    console.log("Error might be with internet connection");
     console.error("Error in callback:", error);
     return NextResponse.redirect(
-      getAbsoluteUrl(
-        `/api/canva/auth-failure?error=${encodeURIComponent(String(error))}`,
+      new URL(
+        `/canva/auth-failure?error=${encodeURIComponent(String(error))}`,
+        request.url,
       ),
     );
   }

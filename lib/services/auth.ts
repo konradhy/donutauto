@@ -33,14 +33,18 @@ export const getCanvaAuthorization = async (): Promise<boolean> => {
 
     try {
       const url = new URL(endpoints.AUTHORIZE, BACKEND_HOST);
-      // Instead of opening a popup, we'll redirect the current window
-      window.location.href = url.toString();
+      const authWindow = window.open(url.toString(), "_blank");
 
-      // Since we're redirecting, we don't need the message listener or interval check
-      // The rest of the auth flow will be handled by the callback route
+      if (!authWindow) {
+        throw new Error("Failed to open authentication window");
+      }
 
-      // Resolve the promise immediately, as the actual auth result will be handled in the callback
-      resolve(true);
+      const checkClosed = setInterval(() => {
+        if (authWindow.closed) {
+          clearInterval(checkClosed);
+          resolve(true); // Assume success if the window is closed
+        }
+      }, 500);
     } catch (error) {
       console.error("Authorization failed", error);
       reject(error);
@@ -48,11 +52,23 @@ export const getCanvaAuthorization = async (): Promise<boolean> => {
   });
 };
 
-export const revoke = async (): Promise<boolean> => {
-  const response = await fetchData<{ success: boolean }>(endpoints.REVOKE, {
-    method: "POST",
-  });
-  return response.success;
+export const revoke = async (): Promise<{
+  success: boolean;
+  message?: string;
+}> => {
+  try {
+    const response = await fetchData<{ message: string }>(endpoints.REVOKE, {
+      method: "POST",
+    });
+    return { success: true, message: response.message };
+  } catch (error) {
+    console.error("Error in revoke:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
 };
 
 export const checkAuthorizationStatus = async (): Promise<{
