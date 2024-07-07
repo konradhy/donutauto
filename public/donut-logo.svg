@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define the mask for the cut-out hole -->
+  <mask id="donut-hole">
+    <rect width="100%" height="100%" fill="white" />
+    <circle cx="100" cy="100" r="40" fill="black" />
+  </mask>
+  <!-- Outer circle with mask applied -->
+  <circle cx="100" cy="100" r="80" fill="#FF69B4" mask="url(#donut-hole)" />
+
+  <!-- Inner circle to create the hole effect -->
+  <circle cx="100" cy="100" r="40" fill="none" stroke="none" mask="url(#donut-hole)" />
+  
+  <!-- sprinkles -->
+  <circle cx="130" cy="70" r="6" fill="#FF4500" />
+  <circle cx="70" cy="120" r="4" fill="#FFD700" />
+  <circle cx="120" cy="140" r="5" fill="#00FF00" />
+  <circle cx="90" cy="60" r="7" fill="#1E90FF" />
+  <circle cx="150" cy="90" r="5" fill="#8A2BE2" />
+  <circle cx="50" cy="100" r="6" fill="#FF1493" />
+  <circle cx="110" cy="90" r="3" fill="#FF8C00" />
+  <circle cx="80" cy="150" r="4" fill="#ADFF2F" />
+  <circle cx="60" cy="80" r="5" fill="#4B0082" />
+  <circle cx="140" cy="120" r="7" fill="#00CED1" />
+  <circle cx="100" cy="50" r="5" fill="#FF6347" />
+  <circle cx="40" cy="110" r="6" fill="#FFA07A" />
+  <circle cx="160" cy="130" r="4" fill="#7FFF00" />
+  <circle cx="80" cy="40" r="3" fill="#00BFFF" />
+  <circle cx="120" cy="60" r="6" fill="#DA70D6" />
+  <circle cx="60" cy="140" r="5" fill="#8B008B" />
+  <circle cx="140" cy="80" r="4" fill="#4682B4" />
+  <circle cx="70" cy="160" r="7" fill="#32CD32" />
+  <circle cx="130" cy="100" r="5" fill="#FF69B4" />
+  <circle cx="110" cy="50" r="4" fill="#FFA500" />
+  <circle cx="90" cy="130" r="6" fill="#00FF7F" />
+  <circle cx="150" cy="70" r="3" fill="#9932CC" />
+</svg>
