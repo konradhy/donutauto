@@ -1,16 +1,32 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigation } from "./_components/sidebar/navigation";
 import { useConvexAuth } from "convex/react";
+import { useUser } from "@clerk/clerk-react";
 import { redirect } from "next/navigation";
-
 import { Spinner } from "@/components/spinner";
-//import { ModalProvider } from "@/components/providers/modal-provider";
+import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isLoading: isStoringUser } = useStoreUserEffect();
+  const { user } = useUser();
+  const userDetails = useQuery(
+    api.userManagement.getUser,
+    isAuthenticated ? undefined : "skip",
+  );
 
-  if (isLoading) {
+  useEffect(() => {
+    if (isAuthenticated && user && userDetails) {
+      // Set cookies
+      document.cookie = `tokenIdentifier=${userDetails.tokenIdentifier}; path=/; max-age=86400; SameSite=Lax; Secure`; // 24 hours expiry
+      document.cookie = `userName=${userDetails.name}; path=/; max-age=86400; SameSite=Lax; Secure`; //to do reconsider lax. delete cookies upon reload. //Currently, if you knew someone's token identifier you could set their access token. This is exploitable?
+    }
+  }, [isAuthenticated, user, userDetails]);
+
+  if (isLoading || isStoringUser) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Spinner />
@@ -25,7 +41,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-screen bg-navBackground ">
       <Navigation />
-      {/* <ModalProvider /> */}
       <main className="flex-1 shadow-inner bg-background ">{children}</main>
     </div>
   );
