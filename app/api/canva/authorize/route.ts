@@ -2,10 +2,12 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 
+//place in helper/util/lib file
 export const AUTH_COOKIE_NAME = "aut";
 export const OAUTH_STATE_COOKIE_NAME = "oas";
 export const OAUTH_CODE_VERIFIER_COOKIE_NAME = "ocv";
 
+//TODO: place in util file
 function getAuthorizationUrl(
   redirectUri: string,
   state: string,
@@ -16,6 +18,18 @@ function getAuthorizationUrl(
     throw new Error("CANVA_CLIENT_ID is not set");
   }
 
+  const scopes = [
+    "asset:read",
+    "asset:write",
+    "brandtemplate:content:read",
+    "brandtemplate:meta:read",
+    "design:content:read",
+    "design:content:write",
+    "design:meta:read",
+    "profile:read",
+  ];
+
+  const scopeString = scopes.join(" ");
   const authorizationUrl = new URL("https://www.canva.com/api/oauth/authorize");
   authorizationUrl.searchParams.append("client_id", clientId);
   authorizationUrl.searchParams.append("response_type", "code");
@@ -23,10 +37,7 @@ function getAuthorizationUrl(
   authorizationUrl.searchParams.append("state", state);
   authorizationUrl.searchParams.append("code_challenge", codeChallenge);
   authorizationUrl.searchParams.append("code_challenge_method", "S256");
-  authorizationUrl.searchParams.append("scope", "profile:read");
-
-  // TODO: better error handling needed. Clearly state if a variable is missing or has an invalid value
-  // TODO: Make scope a variable and added more of them.
+  authorizationUrl.searchParams.append("scope", scopeString);
 
   return authorizationUrl.toString();
 }

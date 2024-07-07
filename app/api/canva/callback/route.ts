@@ -1,19 +1,21 @@
 // app/api/canva/callback/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { OauthService } from "@/lib/canva-api";
 import { getBasicAuthClient } from "@/lib/canva-api/client";
+import { api } from "@/convex/_generated/api";
+import { fetchMutation } from "convex/nextjs";
 
 export const AUTH_COOKIE_NAME = "aut";
 export const OAUTH_STATE_COOKIE_NAME = "oas";
 export const OAUTH_CODE_VERIFIER_COOKIE_NAME = "ocv";
+export const TOKEN_IDENTIFIER_COOKIE_NAME = "tokenIdentifier";
 
 function getAbsoluteUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
 }
 
 export async function GET(request: NextRequest) {
-  console.log("Full cookie header:", request.headers.get("cookie"));
-
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -21,6 +23,9 @@ export async function GET(request: NextRequest) {
   const storedState = request.cookies.get(OAUTH_STATE_COOKIE_NAME)?.value;
   const codeVerifier = request.cookies.get(
     OAUTH_CODE_VERIFIER_COOKIE_NAME,
+  )?.value;
+  const tokenIdentifier = request.cookies.get(
+    TOKEN_IDENTIFIER_COOKIE_NAME,
   )?.value;
 
   if (!code || !state || state !== storedState || !codeVerifier) {
@@ -47,7 +52,6 @@ export async function GET(request: NextRequest) {
     });
 
     if (exchangeResult.error) {
-      console.error("Token exchange error:", exchangeResult.error);
       return NextResponse.redirect(
         getAbsoluteUrl(
           `/api/canva/auth-failure?error=${encodeURIComponent(JSON.stringify(exchangeResult.error))}`,
@@ -60,7 +64,17 @@ export async function GET(request: NextRequest) {
       throw new Error("No token data received");
     }
 
-    console.log("Access Token:", tokenData.access_token);
+    if (!tokenIdentifier) {
+      throw new Error("No token identifier found");
+    }
+
+    await fetchMutation(api.canvaAuth.storeAccessToken, {
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      expiresIn: tokenData.expires_in,
+      tokenIdentifier: tokenIdentifier || "error token identifier",
+    });
+
     //store access token in convex
 
     const response = NextResponse.redirect(

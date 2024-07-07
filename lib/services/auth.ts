@@ -2,7 +2,7 @@ import { BACKEND_HOST } from "@/lib/config";
 
 const endpoints = {
   AUTHORIZE: "/api/canva/authorize",
-  REVOKE: "/revoke",
+  REVOKE: "/api/canva/revoke",
   IS_AUTHORIZED: "/isauthorized",
   USER: "/user",
 };
