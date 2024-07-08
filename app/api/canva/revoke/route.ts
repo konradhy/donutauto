@@ -22,7 +22,7 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the user's tokenIdentifier from the cookie
+    // Get user's tokenIdentifier from  cookie
     const tokenIdentifier = request.cookies.get("tokenIdentifier")?.value;
     if (!tokenIdentifier) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
     console.log("tokenIdentifier", tokenIdentifier);
 
-    // Get the user's refresh token from Convex
+    // Get user's refresh token from Convex
     const refreshToken = await convex.query(api.canvaAuth.getRefreshToken, {
       tokenIdentifier,
     });
@@ -44,16 +44,14 @@ export async function POST(request: NextRequest) {
     }
     console.log("refreshToken", refreshToken);
 
-    // Set up the parameters for the revoke request
+    // Config params.
     const params = new URLSearchParams({
       token: refreshToken,
       client_id: process.env.CANVA_CLIENT_ID!,
       client_secret: process.env.CANVA_CLIENT_SECRET!,
     });
 
-    console.log("params", params.toString());
     // Make the revoke request to Canva
-
     await OauthService.revokeTokens({
       client: getBasicAuthClient(),
       body: params,
@@ -63,7 +61,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // If successful, update the user's status in your database
+    // If successful, update the user's status
     await convex.mutation(api.canvaAuth.updateCanvaConnectionStatus, {
       tokenIdentifier,
       isConnected: false,

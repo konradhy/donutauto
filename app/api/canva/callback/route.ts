@@ -3,17 +3,14 @@ import { OauthService } from "@/lib/canva-api";
 import { getBasicAuthClient } from "@/lib/canva-api/client";
 import { api } from "@/convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
+import { getAbsoluteUrl } from "@/lib/utils";
+import {
+  OAUTH_CODE_VERIFIER_COOKIE_NAME,
+  OAUTH_STATE_COOKIE_NAME,
+  TOKEN_IDENTIFIER_COOKIE_NAME,
+} from "@/lib/services/auth";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
-export const AUTH_COOKIE_NAME = "aut";
-export const OAUTH_STATE_COOKIE_NAME = "oas";
-export const OAUTH_CODE_VERIFIER_COOKIE_NAME = "ocv";
-export const TOKEN_IDENTIFIER_COOKIE_NAME = "tokenIdentifier";
-
-function getAbsoluteUrl(path: string) {
-  return `${process.env.NEXT_PUBLIC_BASE_URL}${path}`;
-}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -70,12 +67,15 @@ export async function GET(request: NextRequest) {
       throw new Error("No token identifier found");
     }
 
+    //Consider encoding if I decide insecure
     await convex.mutation(api.canvaAuth.storeAccessToken, {
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
       expiresIn: tokenData.expires_in,
       tokenIdentifier: tokenIdentifier,
     });
+
+    //consider a set token function similar to Demo.
 
     const response = NextResponse.redirect(
       new URL("/canva/auth-success", request.url),

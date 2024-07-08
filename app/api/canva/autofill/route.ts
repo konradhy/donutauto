@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
-import { getBasicAuthClient } from "@/lib/canva-api/client";
+import {
+  getBasicAuthClient,
+  getUserClient,
+  getAccessTokenForUser,
+} from "@/lib/canva-api/client";
 import { AutofillService } from "@/lib/canva-api/services.gen";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -18,12 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the user's access token from Convex
-    const { accessToken } = await convex.query(
-      api.canvaAuth.getAccessTokenWithTokenIdentifier,
-      {
-        tokenIdentifier,
-      },
-    );
+    //Is there a safer way to inject this?
+    const accessToken = await getAccessTokenForUser(tokenIdentifier);
+
     if (!accessToken) {
       return NextResponse.json(
         { error: "Access token not found" },
@@ -31,34 +32,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("accessToken", accessToken);
-
-    // Hardcoded brand template ID and autofill data
-    const brandTemplateId = "DAGKSQm7nWw"; // Replace with your actual brand template ID
-    const autofillData = {
-      brand_template_id: "brandTemplateId",
-      title: "Autofilled Design",
-      data: {
-        cute_pet_image_of_the_day: {
-          type: "image",
-          asset_id: "Msd59349ff", // Replace with an actual asset ID
-        },
-        cute_pet_witty_pet_says: {
-          type: "text",
-          text: "It was like this when I got here!",
-        },
-      },
-    };
-
     // Create the autofill job
 
-    const response = await fetch("https://api.canva.com/rest/v1/autofills", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
+    const answer = await AutofillService.createDesignAutofillJob({
+      client: getUserClient(accessToken),
+      path: {
+        brandTemplateId: "DAGKSQm7nWw",
       },
-      body: JSON.stringify({
+      body: {
         brand_template_id: "DAGKSQm7nWw",
         title: "string",
         data: {
@@ -71,19 +52,40 @@ export async function POST(request: NextRequest) {
             text: "Hot",
           },
         },
-      }),
+      },
     });
 
-    if (!response) {
-      throw new Error(`Autofill job creation failed: ${response}`);
+    // const response = await fetch("https://api.canva.com/rest/v1/autofills", {
+    //   method: "POST",
+    //   headers: {
+    //     Authorization: `Bearer ${accessToken}`,
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     brand_template_id: "DAGKSQm7nWw",
+    //     title: "string",
+    //     data: {
+    //       CITY: {
+    //         type: "text",
+    //         text: "Kingston",
+    //       },
+    //       TEMPERATURE: {
+    //         type: "text",
+    //         text: "Hot",
+    //       },
+    //     },
+    //   }),
+    // });
+    // const job = await response.json();
+
+    if (!answer) {
+      return NextResponse.json(
+        { error: "Failed to create autofill job" },
+        { status: 500 },
+      );
     }
 
-    const job = await response.json();
-
-    return NextResponse.json({
-      message: "Autofill job created successfully",
-      job,
-    });
+    return NextResponse.json(answer.data);
   } catch (error) {
     console.error("Error creating autofill job:", error);
     return NextResponse.json(

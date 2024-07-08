@@ -3,9 +3,47 @@ import { BACKEND_HOST } from "@/lib/config";
 const endpoints = {
   AUTHORIZE: "/api/canva/authorize",
   REVOKE: "/api/canva/revoke",
-  IS_AUTHORIZED: "/isauthorized",
-  USER: "/user",
+  USER: "api/canva/user",
 };
+
+export const AUTH_COOKIE_NAME = "aut";
+export const OAUTH_STATE_COOKIE_NAME = "oas";
+export const OAUTH_CODE_VERIFIER_COOKIE_NAME = "ocv";
+export const TOKEN_IDENTIFIER_COOKIE_NAME = "tokenIdentifier";
+
+export function getAuthorizationUrl(
+  redirectUri: string,
+  state: string,
+  codeChallenge: string,
+): string {
+  const clientId = process.env.CANVA_CLIENT_ID;
+  if (!clientId) {
+    throw new Error("CANVA_CLIENT_ID is not set");
+  }
+
+  const scopes = [
+    "asset:read",
+    "asset:write",
+    "brandtemplate:content:read",
+    "brandtemplate:meta:read",
+    "design:content:read",
+    "design:content:write",
+    "design:meta:read",
+    "profile:read",
+  ];
+
+  const scopeString = scopes.join(" ");
+  const authorizationUrl = new URL("https://www.canva.com/api/oauth/authorize");
+  authorizationUrl.searchParams.append("client_id", clientId);
+  authorizationUrl.searchParams.append("response_type", "code");
+  authorizationUrl.searchParams.append("redirect_uri", redirectUri);
+  authorizationUrl.searchParams.append("state", state);
+  authorizationUrl.searchParams.append("code_challenge", codeChallenge);
+  authorizationUrl.searchParams.append("code_challenge_method", "S256");
+  authorizationUrl.searchParams.append("scope", scopeString);
+
+  return authorizationUrl.toString();
+}
 
 const fetchData = async <T>(
   endpoint: string,
@@ -69,12 +107,6 @@ export const revoke = async (): Promise<{
         error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
-};
-
-export const checkAuthorizationStatus = async (): Promise<{
-  status: boolean;
-}> => {
-  return fetchData<{ status: boolean }>(endpoints.IS_AUTHORIZED);
 };
 
 export const getUser = async (): Promise<{
