@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     logAuthError("token_identifier_retrieval_error", "unknown", {
       error: error.message,
       path: request.url,
@@ -65,6 +65,6 @@ export async function GET(request: NextRequest) {
       userAgent: request.headers.get("user-agent") || "Unknown",
     });
 
-    return NextResponse.error(error);
+    return NextResponse.error();
   }
 }

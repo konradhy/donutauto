@@ -8,7 +8,7 @@ export const withErrorHandler =
   async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       await handler(req, res);
-    } catch (error) {
+    } catch (error: any) {
       logAuthError("api_error", req.body?.userId || "unknown", {
         error: error.message,
         path: req.url,
