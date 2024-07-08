@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
         { status: 401 },
       );
     }
-    console.log("tokenIdentifier", tokenIdentifier);
 
     // Get user's refresh token from Convex
     const refreshToken = await convex.query(api.canvaAuth.getRefreshToken, {
@@ -42,7 +41,6 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       );
     }
-    console.log("refreshToken", refreshToken);
 
     // Config params.
     const params = new URLSearchParams({

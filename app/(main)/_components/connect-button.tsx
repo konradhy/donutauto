@@ -49,7 +49,6 @@ export const ConnectButton = () => {
   const onRevokeClick = async () => {
     try {
       const result = await revoke();
-      console.log("result", result);
 
       if (result.success) {
         //toast message

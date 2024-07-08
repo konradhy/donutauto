@@ -9,6 +9,7 @@ import {
   OAUTH_STATE_COOKIE_NAME,
   TOKEN_IDENTIFIER_COOKIE_NAME,
 } from "@/lib/services/auth";
+import { logAuthEvent, logAuthError } from "@/lib/logs/authLogger";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -74,7 +75,9 @@ export async function GET(request: NextRequest) {
       expiresIn: tokenData.expires_in,
       tokenIdentifier: tokenIdentifier,
     });
-
+    logAuthEvent("Auth attempt successful", tokenIdentifier || "unknown", {
+      userAgent: request.headers.get("user-agent") || "Unknown",
+    });
     //consider a set token function similar to Demo.
 
     const response = NextResponse.redirect(

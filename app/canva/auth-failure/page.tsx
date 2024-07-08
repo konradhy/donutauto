@@ -7,6 +7,9 @@ import Image from "next/image";
 export default function AuthFailure() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const handleManualClose = () => {
+    window.close();
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -42,6 +45,12 @@ export default function AuthFailure() {
         <p className="text-sm text-gray-500">
           This window will close automatically in a few seconds...
         </p>
+        <button
+          onClick={handleManualClose}
+          className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded transition duration-300"
+        >
+          Close Window
+        </button>
       </div>
     </div>
   );

@@ -1,16 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function AuthSuccess() {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.close();
-    }, 3000);
+  const [countdown, setCountdown] = useState(3);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          window.close();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
+
+  const handleManualClose = () => {
+    window.close();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 via-yellow-100 to-blue-100 flex flex-col items-center justify-center">
@@ -30,9 +43,15 @@ export default function AuthSuccess() {
           delicious automation!
         </p>
         <div className="text-3xl mb-4">🍩</div>
-        <p className="text-sm text-gray-500">
-          This window will close automatically in a few seconds...
+        <p className="text-sm text-gray-500 mb-4">
+          This window will close automatically in {countdown} seconds...
         </p>
+        <button
+          onClick={handleManualClose}
+          className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded transition duration-300"
+        >
+          Close Window
+        </button>
       </div>
     </div>
   );
