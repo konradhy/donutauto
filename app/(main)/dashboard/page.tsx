@@ -159,11 +159,11 @@ export default function Dashboard() {
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                 <li className="flex items-center">
                   <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                  Campaign "Summer Sprinkles" created
+                  Campaign &quot;Summer Sprinkles&quot; created
                 </li>
                 <li className="flex items-center">
                   <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                  200 emails sent for "Chocolate Lovers" campaign
+                  200 emails sent for &quot;Chocolate Lovers&quot; campaign
                 </li>
                 <li className="flex items-center">
                   <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
@@ -182,7 +182,7 @@ export default function Dashboard() {
   );
 }
 
-function MetricCard({ title, value, icon }) {
+function MetricCard({ title, value, icon }: any) {
   return (
     <Card className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

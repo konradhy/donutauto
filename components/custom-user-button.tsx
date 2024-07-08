@@ -67,8 +67,13 @@ export const CustomUserButton: React.FC = () => {
             variant="destructive"
             className="w-full"
             onClick={() => {
-              handleSignOut();
-              setIsOpen(false);
+              handleSignOut()
+                .catch((error) => {
+                  console.error("Error during sign out:", error);
+                })
+                .finally(() => {
+                  setIsOpen(false);
+                });
             }}
           >
             Sign Out
