@@ -133,7 +133,7 @@ export const Navigation = () => {
       }));
     };
 
-    //@ts-ignore - variant isn't a string it can only be default or ghost
+    // @ts-expect-error Variants are correctly set in updateLinkVariants
     setTopLinks(updateLinkVariants(initialTopLinks));
   }, [pathname]);
 
@@ -178,13 +178,13 @@ export const Navigation = () => {
                   title: "Create Battle",
                   icon: Shield,
                   variant: "ghost",
-                 // onClick: handleCreateBattle,
+                  // onClick: handleCreateBattle,
                 },
                 {
                   title: "Join Battle",
                   icon: Sword,
                   variant: "ghost",
-                 // onClick: onOpen,
+                  // onClick: onOpen,
                 },
               ]}
             />

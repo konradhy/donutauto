@@ -13,7 +13,7 @@ export interface NavLink {
   name?: string;
 }
 
-export let initialTopLinks: NavLink[] = [
+export const initialTopLinks: NavLink[] = [
   {
     title: "Home",
     icon: Home,
