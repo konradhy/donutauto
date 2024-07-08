@@ -1,35 +1,22 @@
 "use client";
+
 import { usePathname } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import {
-  ChevronsLeft,
-  GripVertical,
-  MenuIcon,
-  Bot,
-  Sword,
-  Shield,
-} from "lucide-react";
+import { ChevronsLeft, GripVertical, MenuIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { NavLink, initialTopLinks } from "./navigation-links";
+import { NavLink, initialTopLinks, bottomLinks } from "./navigation-links";
 import { Separator } from "@/components/ui/separator";
 import { Nav } from "./nav";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { useRouter } from "next/navigation";
-//import { useSearch } from "@/hooks/use-search";
 import { ThemeToggle } from "@/components/theme-toggle";
+import Image from "next/image";
 
 export const Navigation = () => {
-  const router = useRouter();
-  //hooks
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
-  //const { isOpen, onClose, onOpen } = useSearch();
 
-  //refs
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
   const navbarRef = useRef<ElementRef<"div">>(null);
@@ -37,16 +24,13 @@ export const Navigation = () => {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
   const [isIconised, setIsIconised] = useState(false);
 
-  //mutations
-  //const createBattle = useMutation(api.battle.createBattle);
-
   useEffect(() => {
     if (isMobile) {
       collapse();
     } else {
       resetWidth();
     }
-  }, [isMobile]); //ignore warning. The refs we are working with aren't reactive in the way that the useEffect hook is expecting.
+  }, [isMobile]);
 
   useEffect(() => {
     if (isMobile) {
@@ -54,7 +38,6 @@ export const Navigation = () => {
     }
   }, [pathname, isMobile]);
 
-  //functions
   const handleMouseDown = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,
   ) => {
@@ -82,11 +65,7 @@ export const Navigation = () => {
       );
     }
 
-    if (newWidth < 160) {
-      setIsIconised(true);
-    } else {
-      setIsIconised(false);
-    }
+    setIsIconised(newWidth < 160);
   };
 
   const handleMouseUp = () => {
@@ -137,74 +116,56 @@ export const Navigation = () => {
     setTopLinks(updateLinkVariants(initialTopLinks));
   }, [pathname]);
 
-  const handleCreateBattle = async () => {
-    try {
-      // const id = await createBattle();
-      // router.push(`/dashboard/${id}`);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   return (
     <>
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar h-full  overflow-y-auto relative flex w-60 flex-col z-[99999] ",
+          "group/sidebar h-screen overflow-y-auto relative flex w-60 flex-col z-[99999] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "w-0",
         )}
       >
-        <div
-          onClick={collapse}
-          role="button"
-          className={cn(
-            "h-6 w-6 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition",
-            isMobile && "opacity-100",
-          )}
-        >
-          <ChevronsLeft className="h-6 w-6" />
+        <div className="flex flex-col h-full">
+          <div
+            onClick={collapse}
+            role="button"
+            className={cn(
+              "h-6 w-6 text-muted-foreground rounded-sm hover:bg-gray-200 dark:hover:bg-gray-700 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition",
+              isMobile && "opacity-100",
+            )}
+          >
+            <ChevronsLeft className="h-6 w-6" />
+          </div>
+
+          <div className="px-4 py-6">
+            <Image
+              src="/donut-logo.svg"
+              alt="DonutAuto Logo"
+              width={40}
+              height={40}
+            />
+          </div>
+
+          <nav className="flex-1">
+            <TooltipProvider>
+              <Nav isCollapsed={isIconised} links={topLinks} />
+              <Separator className="my-4" />
+              <Nav isCollapsed={isIconised} links={bottomLinks} />
+            </TooltipProvider>
+          </nav>
+
+          <div className="p-4 mt-auto">
+            <ThemeToggle />
+          </div>
         </div>
 
-        <nav className="mt-4 ">
-          <TooltipProvider>
-            <Nav isCollapsed={isIconised} links={topLinks} />
-            <Separator />
-            <Nav
-              isCollapsed={isIconised}
-              links={[
-                {
-                  title: "Create Battle",
-                  icon: Shield,
-                  variant: "ghost",
-                  // onClick: handleCreateBattle,
-                },
-                {
-                  title: "Join Battle",
-                  icon: Sword,
-                  variant: "ghost",
-                  // onClick: onOpen,
-                },
-              ]}
-            />
-            <div
-              className={`flex items-center ${isIconised ? "justify-center" : "justify-start"} px-4`}
-            >
-              <ThemeToggle />
-            </div>
-          </TooltipProvider>
-        </nav>
-
         <div
-          className="flex flex-row-reverse"
+          className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 right-0 top-0"
           onMouseDown={handleMouseDown}
           onClick={resetWidth}
         >
-          <div className="group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 right-0 top-0">
-            <div className=" group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-[1px] bg-primary/40 right-0 top-0 " />
-          </div>
-          <GripVertical className="h-6 w-6 group-hover/sidebar transition cursor-ew-resize   " />
+          <div className="absolute h-full w-1 bg-gray-300 dark:bg-gray-600 right-0 top-0" />
         </div>
       </aside>
 
