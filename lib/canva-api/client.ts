@@ -20,7 +20,7 @@ export function getBasicAuthClient() {
     const requestId = res.headers.get("x-request-id");
     if (res.status >= 400) {
       console.warn(
-        `Response status ${res.status} on ${res.url}: request id: ${requestId}, ${res.body}`,
+        `Response status ${res.status} on ${res.url}: request id: ${requestId}, }`,
       );
     } else {
       console.log(
@@ -101,7 +101,7 @@ export async function getAccessTokenForUser(
   });
 
   if (result.error) {
-    throw new Error(`Failed to refresh token ${result.error}`);
+    throw new Error(`Failed to refresh token $`);
   }
   if (!result.data) {
     throw new Error(
