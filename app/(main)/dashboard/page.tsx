@@ -88,7 +88,7 @@ const MainDashboard: React.FC = () => {
           <CardContent>
             <ul className="space-y-2">
               <li className="flex items-center justify-between">
-                <span>New project created: "Summer Campaign"</span>
+                <span>New project created: &quot;Summer Campaign&quot;</span>
                 <span className="text-sm text-muted-foreground">
                   2 hours ago
                 </span>

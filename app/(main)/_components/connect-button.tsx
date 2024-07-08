@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Link2Off } from "lucide-react";
 import { CanvaIcon } from "@/components/canva-icon";
 
-import { getCanvaAuthorization, getUser, revoke } from "@/lib/services/auth";
+import { getCanvaAuthorization, revoke } from "@/lib/services/auth";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
@@ -64,13 +64,21 @@ export const ConnectButton = () => {
   };
 
   return isConnected ? (
-    <Button variant="destructive" onClick={onRevokeClick} className="w-full">
+    <Button
+      variant="destructive"
+      onClick={() => {
+        void onRevokeClick();
+      }}
+      className="w-full"
+    >
       <Link2Off className="mr-2 h-4 w-4" /> DISCONNECT FROM CANVA
     </Button>
   ) : (
     <Button
       variant="default"
-      onClick={onConnectClick}
+      onClick={() => {
+        void onConnectClick();
+      }}
       disabled={isLoading}
       className="w-full"
     >

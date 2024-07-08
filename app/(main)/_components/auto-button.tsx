@@ -34,7 +34,12 @@ export const AutofillButton: React.FC = () => {
 
   return (
     <div>
-      <Button onClick={handleAutofill} disabled={isLoading}>
+      <Button
+        onClick={() => {
+          void handleAutofill();
+        }}
+        disabled={isLoading}
+      >
         {isLoading ? "Creating Autofill Job..." : "Create Autofill Job"}
       </Button>
     </div>
