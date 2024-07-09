@@ -14,6 +14,9 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as campaignActions from "../campaignActions.js";
+import type * as campaigns from "../campaigns.js";
+import type * as canvaApi from "../canvaApi.js";
 import type * as canvaAuth from "../canvaAuth.js";
 import type * as customers from "../customers.js";
 import type * as userManagement from "../userManagement.js";
@@ -27,6 +30,9 @@ import type * as userManagement from "../userManagement.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  campaignActions: typeof campaignActions;
+  campaigns: typeof campaigns;
+  canvaApi: typeof canvaApi;
   canvaAuth: typeof canvaAuth;
   customers: typeof customers;
   userManagement: typeof userManagement;
