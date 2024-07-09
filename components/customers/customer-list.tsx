@@ -25,26 +25,30 @@ export function CustomerList() {
     { initialNumItems: 10 },
   );
 
-  const handleDelete = async (id: Id<"customers">) => {
-    if (
-      window.confirm(
-        "Are you sure you want to remove this sweet customer from your donut shop?",
-      )
-    ) {
-      try {
-        await deleteCustomer({ id });
-        toast.success("Customer successfully removed from the batch! 🍩", {
-          style: { background: "#10B981", color: "white" },
-        });
-      } catch (error) {
-        toast.error(
-          "Oops! We dropped the donut. Couldn't remove the customer. 😢",
-          {
-            style: { background: "#EF4444", color: "white" },
-          },
-        );
+  const handleDelete = (id: Id<"customers">) => {
+    const deleteAction = async () => {
+      if (
+        window.confirm(
+          "Are you sure you want to remove this sweet customer from your donut shop?",
+        )
+      ) {
+        try {
+          await deleteCustomer({ id });
+          toast.success("Customer successfully removed from the batch! 🍩", {
+            style: { background: "#10B981", color: "white" },
+          });
+        } catch (error) {
+          toast.error(
+            "Oops! We dropped the donut. Couldn't remove the customer. 😢",
+            {
+              style: { background: "#EF4444", color: "white" },
+            },
+          );
+        }
       }
-    }
+    };
+
+    void deleteAction();
   };
 
   return (

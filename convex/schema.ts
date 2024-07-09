@@ -31,5 +31,7 @@ export default defineSchema({
     twitterHandle: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
+    campaigns: v.optional(v.array(v.id("campaigns"))),
+    designs: v.optional(v.array(v.id("designs"))),
   }).index("by_email", ["email"]),
 });
