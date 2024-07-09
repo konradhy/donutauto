@@ -17,4 +17,16 @@ export default defineSchema({
   })
     .index("by_email", ["email"])
     .index("by_token_identifier", ["tokenIdentifier"]),
+
+  customers: defineTable({
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    preferences: v.optional(v.array(v.string())),
+    dob: v.optional(v.string()),
+    generatedDesignUrl: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_email", ["email"]),
 });

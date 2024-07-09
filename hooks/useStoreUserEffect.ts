@@ -1,4 +1,3 @@
-// src/hooks/useStoreUserEffect.ts
 "use client";
 
 import { useUser } from "@clerk/clerk-react";

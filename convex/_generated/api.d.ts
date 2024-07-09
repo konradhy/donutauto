@@ -15,6 +15,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as canvaAuth from "../canvaAuth.js";
+import type * as customers from "../customers.js";
 import type * as userManagement from "../userManagement.js";
 
 /**
@@ -27,6 +28,7 @@ import type * as userManagement from "../userManagement.js";
  */
 declare const fullApi: ApiFromModules<{
   canvaAuth: typeof canvaAuth;
+  customers: typeof customers;
   userManagement: typeof userManagement;
 }>;
 export declare const api: FilterApi<

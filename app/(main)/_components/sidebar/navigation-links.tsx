@@ -8,6 +8,7 @@ import {
   Settings,
   HelpCircle,
   LucideIcon,
+  Plus,
 } from "lucide-react";
 
 export interface NavLink {
@@ -49,6 +50,13 @@ export const initialTopLinks: NavLink[] = [
     variant: "ghost",
     link: "/campaigns",
     name: "campaigns",
+  },
+  {
+    title: "New Customer",
+    icon: Plus,
+    variant: "ghost",
+    link: "/customers/add",
+    name: "new-customer",
   },
 ];
 
