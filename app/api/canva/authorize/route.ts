@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       state,
       codeChallenge,
     );
-    //you need to include id's
+
     logAuthEvent(
       `${user?.firstName} started an Auth attempt`,
       user?.id || "unknown",
