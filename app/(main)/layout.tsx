@@ -21,10 +21,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (isAuthenticated && user && userDetails) {
       // Set cookies
-      document.cookie = `tokenIdentifier=${userDetails.tokenIdentifier}; path=/; max-age=86400; SameSite=Lax; Secure`; // 24 hours expiry
+      document.cookie = `tokenIdentifier=${userDetails.tokenIdentifier}; path=/; max-age=86400; SameSite=Lax; Secure`; // remove this
       document.cookie = `userName=${userDetails.name}; path=/; max-age=86400; SameSite=Lax; Secure`; //to do reconsider lax. delete cookies upon reload. //Currently, if you knew someone's token identifier you could set their access token. This is exploitable?
     }
-  }, [isAuthenticated, user, userDetails]);
+  }, [isAuthenticated, user, userDetails]); //remove this useEffect
 
   if (isLoading || isStoringUser) {
     return (
