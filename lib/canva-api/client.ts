@@ -2,8 +2,11 @@
 
 import { createClient } from "@hey-api/client-fetch";
 import type { client } from "@hey-api/client-fetch";
-import { ConvexHttpClient } from "convex/browser";
+
 import { api } from "@/convex/_generated/api";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { auth } from "@clerk/nextjs/server";
+
 import { OauthService } from "@/lib/canva-api/services.gen";
 
 export function getBasicAuthClient() {
@@ -33,7 +36,6 @@ export function getBasicAuthClient() {
   return localClient;
 }
 
-//questionable
 export function getUserClient(token: string): typeof client {
   const localClient = createClient({
     global: false,
@@ -60,19 +62,25 @@ export function getUserClient(token: string): typeof client {
   return localClient;
 }
 
-//Rethink how you are getting the access token. Is it safe
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-export async function getAccessTokenForUser(
-  tokenIdentifier: string,
-): Promise<string> {
-  const token = await convex.query(
-    api.canvaAuth.getAccessTokenWithTokenIdentifier,
-    {
-      tokenIdentifier,
-    },
+export async function getAccessTokenForUser() {
+  const { userId, getToken } = auth();
+  if (!userId) {
+    return new Response("User is not signed in.", { status: 401 });
+  }
+
+  const serverToken = await getToken({ template: "convex" });
+  if (!serverToken) {
+    return new Response("Issue getting Convex to Clerk integration token.", {
+      status: 401,
+    });
+  }
+
+  const token = await fetchQuery(
+    api.canvaAuth.getAccessToken,
+    {},
+    { token: serverToken },
   );
 
-  //TODO: Test. Should expire if expiration is less than 10 minutes
   if (token.expiration) {
     if (token.expiration - Date.now() > 600000) {
       return token.accessToken;
@@ -84,7 +92,6 @@ export async function getAccessTokenForUser(
     throw new Error("No refresh token found");
   }
 
-  console.log("Refreshing token");
   const params = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: refreshToken,
@@ -112,14 +119,15 @@ export async function getAccessTokenForUser(
   const refreshedToken = result.data;
   const accessToken = refreshedToken.access_token;
 
-  await convex.mutation(api.canvaAuth.storeAccessToken, {
-    accessToken: refreshedToken.access_token,
-    refreshToken: refreshedToken.refresh_token,
-    expiresIn: refreshedToken.expires_in,
-    tokenIdentifier,
-  });
-
-  //i should really set the new token here in convex. But the harm if i don't is minimum
+  await fetchMutation(
+    api.canvaAuth.setAccessToken,
+    {
+      accessToken: refreshedToken.access_token,
+      refreshToken: refreshedToken.refresh_token,
+      expiresIn: refreshedToken.expires_in,
+    },
+    { token: serverToken },
+  );
 
   return accessToken;
 }

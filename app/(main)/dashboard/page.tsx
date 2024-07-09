@@ -14,6 +14,7 @@ import { Pie, PieChart, Cell, Legend } from "recharts";
 import { CustomUserButton } from "@/components/custom-user-button";
 import { ConnectButton } from "@/components/connect-button";
 import Image from "next/image";
+import { AutofillButton } from "../_components/auto-button";
 
 const data = [
   { name: "Mon", total: 120 },
@@ -53,6 +54,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-4">
             <ConnectButton />
             <CustomUserButton />
+            <AutofillButton />
           </div>
         </div>
       </header>

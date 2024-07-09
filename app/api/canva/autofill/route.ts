@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { api } from "@/convex/_generated/api";
-import { ConvexHttpClient } from "convex/browser";
+
 import {
   getBasicAuthClient,
   getUserClient,
@@ -8,22 +7,10 @@ import {
 } from "@/lib/canva-api/client";
 import { AutofillService } from "@/lib/canva-api/services.gen";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
+//this file will refactor into a convex function
 export async function POST(request: NextRequest) {
   try {
-    // Get the user's tokenIdentifier from the cookie
-    const tokenIdentifier = request.cookies.get("tokenIdentifier")?.value;
-    if (!tokenIdentifier) {
-      return NextResponse.json(
-        { error: "User not authenticated" },
-        { status: 401 },
-      );
-    }
-
-    // Get the user's access token from Convex
-    //Is there a safer way to inject this?
-    const accessToken = await getAccessTokenForUser(tokenIdentifier);
+    const accessToken = await getAccessTokenForUser();
 
     if (!accessToken) {
       return NextResponse.json(
@@ -35,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Create the autofill job
 
     const answer = await AutofillService.createDesignAutofillJob({
-      client: getUserClient(accessToken),
+      client: getUserClient(accessToken as string),
       path: {
         brandTemplateId: "DAGKSQm7nWw",
       },

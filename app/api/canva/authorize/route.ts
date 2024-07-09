@@ -5,12 +5,11 @@ import { getAbsoluteUrl } from "@/lib/utils";
 import {
   OAUTH_CODE_VERIFIER_COOKIE_NAME,
   OAUTH_STATE_COOKIE_NAME,
-  TOKEN_IDENTIFIER_COOKIE_NAME,
 } from "@/lib/services/auth";
 import { getAuthorizationUrl } from "@/lib/services/auth";
 import { withErrorHandler } from "@/lib/logs/apiErrorHandler";
 import { logAuthEvent, logAuthError } from "@/lib/logs/authLogger";
-import logger from "@/lib/logs/logger";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,9 +20,7 @@ export async function GET(request: NextRequest) {
       .update(codeVerifier)
       .digest("base64url");
 
-    const tokenIdentifier = request.cookies.get(
-      TOKEN_IDENTIFIER_COOKIE_NAME,
-    )?.value;
+    const user = await currentUser();
     const redirectUri = getAbsoluteUrl("/api/canva/callback");
 
     const authorizationUrl = getAuthorizationUrl(
@@ -31,12 +28,16 @@ export async function GET(request: NextRequest) {
       state,
       codeChallenge,
     );
-    //you need to include id's
-    logAuthEvent("Auth attempt start", tokenIdentifier || "unknown", {
-      path: request.url,
-      ip: request.ip || request.headers.get("x-forwarded-for") || "Unknown",
-      userAgent: request.headers.get("user-agent") || "Unknown",
-    });
+
+    logAuthEvent(
+      `${user?.firstName} started an Auth attempt`,
+      user?.id || "unknown",
+      {
+        path: request.url,
+        ip: request.ip || request.headers.get("x-forwarded-for") || "Unknown",
+        userAgent: request.headers.get("user-agent") || "Unknown",
+      },
+    );
 
     const response = NextResponse.redirect(authorizationUrl);
 
