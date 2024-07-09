@@ -1,15 +1,4 @@
 "use client";
-/**
- * Rethink  State Management Strategy
- *
- * Current Implementation:
- * - This component was initially designed with Zustand state management in mind.
- * - You've since introduced Convex for database queries, creating redundancy and some awkardness.
- *
- * Considerations for Refactoring:
- *    - Consider maintaining Zustand for client-side state (e.g., user name, authentication status. I.e. the things zustand is already storing. Plus the tokenidentifier so it doesn't have to be a cookie.).
- *    - Use Convex for server-side data that requires real-time synchronization.
- */
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";

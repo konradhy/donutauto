@@ -2,18 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { OauthService } from "@/lib/canva-api";
 import { getBasicAuthClient } from "@/lib/canva-api/client";
 import { api } from "@/convex/_generated/api";
-import { ConvexHttpClient } from "convex/browser";
+
+import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { getAbsoluteUrl } from "@/lib/utils";
 import {
   OAUTH_CODE_VERIFIER_COOKIE_NAME,
   OAUTH_STATE_COOKIE_NAME,
-  TOKEN_IDENTIFIER_COOKIE_NAME,
 } from "@/lib/services/auth";
 import { logAuthEvent, logAuthError } from "@/lib/logs/authLogger";
-
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET(request: NextRequest) {
+  const { userId, getToken } = auth();
+
+  if (!userId) {
+    return new Response("User is not signed in.", { status: 401 });
+  }
+
+  const token = await getToken({ template: "convex" });
+  if (!token) {
+    return new Response("Issue getting Convex to Clerk integration token.", {
+      status: 401,
+    });
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -21,9 +33,6 @@ export async function GET(request: NextRequest) {
   const storedState = request.cookies.get(OAUTH_STATE_COOKIE_NAME)?.value;
   const codeVerifier = request.cookies.get(
     OAUTH_CODE_VERIFIER_COOKIE_NAME,
-  )?.value;
-  const tokenIdentifier = request.cookies.get(
-    TOKEN_IDENTIFIER_COOKIE_NAME,
   )?.value;
 
   if (!code || !state || state !== storedState || !codeVerifier) {
@@ -64,21 +73,23 @@ export async function GET(request: NextRequest) {
       throw new Error("No token data received");
     }
 
-    if (!tokenIdentifier) {
-      throw new Error("No token identifier found");
-    }
-
     //Consider encoding if I decide insecure
-    await convex.mutation(api.canvaAuth.storeAccessToken, {
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      expiresIn: tokenData.expires_in,
-      tokenIdentifier: tokenIdentifier,
-    });
-    logAuthEvent("Auth attempt successful", tokenIdentifier || "unknown", {
+
+    //error handling?
+
+    await fetchMutation(
+      api.canvaAuth.setAccessToken,
+      {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        expiresIn: tokenData.expires_in,
+      },
+      { token },
+    );
+
+    logAuthEvent("Auth attempt successful", userId || "unknown", {
       userAgent: request.headers.get("user-agent") || "Unknown",
     });
-    //consider a set token function similar to Demo.
 
     const response = NextResponse.redirect(
       new URL("/canva/auth-success", request.url),

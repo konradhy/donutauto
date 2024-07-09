@@ -9,7 +9,6 @@ const endpoints = {
 export const AUTH_COOKIE_NAME = "aut";
 export const OAUTH_STATE_COOKIE_NAME = "oas";
 export const OAUTH_CODE_VERIFIER_COOKIE_NAME = "ocv";
-export const TOKEN_IDENTIFIER_COOKIE_NAME = "tokenIdentifier";
 
 export function getAuthorizationUrl(
   redirectUri: string,
