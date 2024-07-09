@@ -41,7 +41,7 @@ export const initialTopLinks: NavLink[] = [
     title: "Customers",
     icon: Users,
     variant: "ghost",
-    link: "/customers",
+    link: "/customers/list",
     name: "customers",
   },
   {

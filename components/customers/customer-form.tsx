@@ -11,11 +11,30 @@ export function CustomerForm() {
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
   const [preferences, setPreferences] = useState<string[]>([]);
+  const [instagramHandle, setInstagramHandle] = useState("");
+  const [tiktokHandle, setTiktokHandle] = useState("");
+  const [twitterHandle, setTwitterHandle] = useState("");
 
   const addCustomer = useMutation(api.customers.add);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firstName || !lastName || !email) {
+      toast.warning(
+        "Hold the sprinkles! 🧁 Are you sure all the required details are filled?",
+        {
+          style: {
+            background: "#F59E0B",
+            color: "white",
+            border: "2px solid #B45309",
+            borderRadius: "8px",
+          },
+          duration: 4000,
+        },
+      );
+      return false;
+    }
+
     void handleSubmitAsync();
   };
 
@@ -28,9 +47,18 @@ export function CustomerForm() {
         phone,
         dob,
         preferences,
+        instagramHandle,
+        tiktokHandle,
+        twitterHandle,
       });
-      toast.success("Customer added successfully!", {
-        style: { background: "#10B981", color: "white" },
+      toast.success("Sweet success! 🍩 New customer glazed and ready to go!", {
+        style: {
+          background: "#10B981",
+          color: "white",
+          border: "2px solid #047857",
+          borderRadius: "8px",
+        },
+        duration: 4000,
       });
       // Clear form
       setFirstName("");
@@ -39,10 +67,25 @@ export function CustomerForm() {
       setPhone("");
       setDob("");
       setPreferences([]);
+      setInstagramHandle("");
+      setTiktokHandle("");
+      setTwitterHandle("");
     } catch (error) {
       toast.error("Failed to add customer. Please try again.", {
         style: { background: "#EF4444", color: "white" },
       });
+      toast.error(
+        "Oops! We've got a hole in our donut. 🕳️ Let's try adding that customer again!",
+        {
+          style: {
+            background: "#EF4444",
+            color: "white",
+            border: "2px solid #B91C1C",
+            borderRadius: "8px",
+          },
+          duration: 5000,
+        },
+      );
       console.error("Failed to add customer:", error);
     }
   };
@@ -73,7 +116,7 @@ export function CustomerForm() {
                   onChange={(e) => setFirstName(e.target.value)}
                   required
                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
-                  placeholder="John"
+                  placeholder="Glazed Gloria"
                 />
               </div>
               <div>
@@ -90,7 +133,7 @@ export function CustomerForm() {
                   onChange={(e) => setLastName(e.target.value)}
                   required
                   className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
-                  placeholder="Dough"
+                  placeholder="Doughnut"
                 />
               </div>
             </div>
@@ -108,7 +151,7 @@ export function CustomerForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
-                placeholder="john@example.com"
+                placeholder="glazed.gloria@sweetemails.com"
               />
             </div>
             <div>
@@ -124,7 +167,7 @@ export function CustomerForm() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
-                placeholder="(123) 456-7890"
+                placeholder="(555) DONUT-YUM"
               />
             </div>
             <div>
@@ -140,6 +183,54 @@ export function CustomerForm() {
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="instagramHandle"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Instagram Handle
+              </label>
+              <input
+                type="text"
+                id="instagramHandle"
+                value={instagramHandle}
+                onChange={(e) => setInstagramHandle(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
+                placeholder="@donut_queen_gloria"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="tiktokHandle"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                TikTok Handle
+              </label>
+              <input
+                type="text"
+                id="tiktokHandle"
+                value={tiktokHandle}
+                onChange={(e) => setTiktokHandle(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
+                placeholder="@glazed_and_confused"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="twitterHandle"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Twitter Handle
+              </label>
+              <input
+                type="text"
+                id="twitterHandle"
+                value={twitterHandle}
+                onChange={(e) => setTwitterHandle(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400"
+                placeholder="@sprinkle_thoughts"
               />
             </div>
             <button
