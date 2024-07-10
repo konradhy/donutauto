@@ -34,4 +34,25 @@ export default defineSchema({
     campaigns: v.optional(v.array(v.id("campaigns"))),
     designs: v.optional(v.array(v.id("designs"))),
   }).index("by_email", ["email"]),
+
+  campaigns: defineTable({
+    customerId: v.id("customers"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    status: v.string(), // "in_progress", "completed", "failed"
+    platforms: v.array(v.string()),
+  }),
+
+  designs: defineTable({
+    campaignId: v.id("campaigns"),
+    customerId: v.id("customers"),
+    platform: v.string(),
+    designId: v.string(),
+    title: v.string(),
+    url: v.string(),
+    thumbnailUrl: v.string(),
+    status: v.string(), // "created", "failed"
+    jobId: v.string(),
+    updatedAt: v.number(),
+  }),
 });

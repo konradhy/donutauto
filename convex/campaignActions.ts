@@ -99,10 +99,10 @@ I need a system to make it easy for me to add a design type.
     // Similar blocks for Twitter and TikTok...
 
     // Save the results
-    // await ctx.runMutation(internal.campaigns.saveCampaignResults, {
-    //   customerId,
-    //   results,
-    // });
+    await ctx.runMutation(internal.campaigns.saveCampaignResults, {
+      customerId,
+      results,
+    });
 
     console.log(
       `Campaign generation completed for customer: ${customerData.firstName} ${customerData.lastName}`,
