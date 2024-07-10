@@ -14,6 +14,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as accessTokenHelper from "../accessTokenHelper.js";
+import type * as accessTokenHelperAction from "../accessTokenHelperAction.js";
 import type * as brandTemplateSettings from "../brandTemplateSettings.js";
 import type * as campaignActions from "../campaignActions.js";
 import type * as campaigns from "../campaigns.js";
@@ -31,6 +33,8 @@ import type * as userManagement from "../userManagement.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  accessTokenHelper: typeof accessTokenHelper;
+  accessTokenHelperAction: typeof accessTokenHelperAction;
   brandTemplateSettings: typeof brandTemplateSettings;
   campaignActions: typeof campaignActions;
   campaigns: typeof campaigns;

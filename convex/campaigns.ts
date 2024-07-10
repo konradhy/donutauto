@@ -2,6 +2,7 @@ import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 import { internal } from "./_generated/api";
+import { title } from "process";
 
 export const generateCampaign = mutation({
   args: { customerId: v.id("customers") },
@@ -48,7 +49,7 @@ export const generateCampaign = mutation({
       {
         customerId: args.customerId,
         customerData,
-        canvaAccessToken: user.canvaAccessToken,
+
         userId: user._id,
       },
     );
@@ -65,17 +66,9 @@ export const saveCampaignResults = internalMutation({
     results: v.array(
       v.object({
         platform: v.string(),
-        job: v.object({
-          id: v.string(),
-          status: v.string(),
-          design: v.optional(
-            v.object({
-              id: v.string(),
-              title: v.string(),
-              url: v.string(),
-            }),
-          ),
-        }),
+        jobId: v.string(),
+        status: v.string(),
+        title: v.string(),
       }),
     ),
   },
@@ -91,20 +84,16 @@ export const saveCampaignResults = internalMutation({
       platforms: results.map((r) => r.platform),
     });
 
-    // Save each job/design
+    // Save each job
     for (const result of results) {
       await ctx.db.insert("designs", {
         campaignId,
         customerId,
         platform: result.platform,
-        jobId: result.job.id,
-        designId: result.job.design?.id ?? "null",
-        title: result.job.design?.title ?? `Design for ${result.platform}`,
-        url: result.job.design?.url ?? "",
-        status: "in_progress",
-
+        jobId: result.jobId,
+        status: result.status,
         updatedAt: Date.now(),
-        thumbnailUrl: "",
+        title: result.title,
       });
     }
 
@@ -116,46 +105,5 @@ export const saveCampaignResults = internalMutation({
     });
 
     return campaignId;
-  },
-});
-// Add a new mutation to update the design status when the job is complete
-export const updateDesignStatus = internalMutation({
-  args: {
-    jobId: v.string(),
-    status: v.string(),
-    thumbnailUrl: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const design = await ctx.db
-      .query("designs")
-      .filter((q) => q.eq(q.field("jobId"), args.jobId))
-      .first();
-
-    if (design) {
-      await ctx.db.patch(design._id, {
-        status: args.status,
-        thumbnailUrl: args.thumbnailUrl,
-        updatedAt: Date.now(),
-      });
-
-      // If all designs in the campaign are complete, update campaign status
-      const campaign = await ctx.db.get(design.campaignId);
-      if (campaign) {
-        const allDesigns = await ctx.db
-          .query("designs")
-          .filter((q) => q.eq(q.field("campaignId"), design.campaignId))
-          .collect();
-
-        const allComplete = allDesigns.every(
-          (d) => d.status === "completed" || d.status === "failed",
-        );
-        if (allComplete) {
-          await ctx.db.patch(design.campaignId, {
-            status: "completed",
-            updatedAt: Date.now(),
-          });
-        }
-      }
-    }
   },
 });

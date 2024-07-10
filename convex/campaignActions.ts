@@ -2,13 +2,13 @@
 
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
-import { api, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 import { callCanvaAPI } from "./canvaApi";
 
 export const DEFAULT_TEMPLATE_IDS = {
   EMAIL: "DAGKfYlVZgQ",
   INSTAGRAM: "DAGKfYlVZgQ",
-  TWITTER: "yDAGKfYlVZgQ",
+  TWITTER: "DAGKfYlVZgQ",
   TIKTOK: "DAGKfYlVZgQ",
 };
 
@@ -26,18 +26,29 @@ export const generateCampaignAction = internalAction({
       twitterHandle: v.optional(v.string()),
       tiktokHandle: v.optional(v.string()),
     }),
-    canvaAccessToken: v.string(),
   },
   handler: async (ctx, args) => {
-    const { customerId, customerData, canvaAccessToken } = args;
+    const { customerId, userId, customerData } = args;
     const results = [];
+
+    // Get Canva access token
+    let canvaAccessToken;
+    try {
+      canvaAccessToken = await ctx.runAction(
+        internal.accessTokenHelperAction.getCanvaAccessToken,
+        { userId },
+      );
+    } catch (error) {
+      console.error("Failed to get Canva access token:", error);
+      throw new Error(
+        "Unable to access Canva. Please ensure your Canva account is connected.",
+      );
+    }
 
     // Fetch custom template settings
     const templateSettings = await ctx.runQuery(
       internal.brandTemplateSettings.getBrandTemplateSettingsInternal,
-      {
-        userId: args.userId,
-      },
+      { userId },
     );
 
     // Helper function to get the appropriate template ID
@@ -52,9 +63,15 @@ export const generateCampaignAction = internalAction({
       return DEFAULT_TEMPLATE_IDS[platform];
     };
 
+    // Helper function to generate a title
+    const generateTitle = (platform: string) => {
+      return `${platform.charAt(0).toUpperCase() + platform.slice(1)} Campaign - ${customerData.firstName} ${customerData.lastName} - User:${userId} Customer:${customerId}`;
+    };
+
     try {
       // Generate email campaign
       const emailTemplateId = getTemplateId("EMAIL");
+      const emailTitle = generateTitle("email");
       const emailResult = await callCanvaAPI(
         emailTemplateId as string,
         {
@@ -67,12 +84,19 @@ export const generateCampaignAction = internalAction({
           },
         },
         canvaAccessToken,
+        emailTitle,
       );
-      results.push({ platform: "email", job: emailResult.job });
+      results.push({
+        platform: "email",
+        jobId: emailResult.job.id,
+        status: emailResult.job.status,
+        title: emailTitle,
+      });
 
       // Generate Instagram campaign if handle exists
       if (customerData.instagramHandle) {
         const instagramTemplateId = getTemplateId("INSTAGRAM");
+        const instagramTitle = generateTitle("instagram");
         const instagramResult = await callCanvaAPI(
           instagramTemplateId as string,
           {
@@ -87,13 +111,20 @@ export const generateCampaignAction = internalAction({
             },
           },
           canvaAccessToken,
+          instagramTitle,
         );
-        results.push({ platform: "instagram", job: instagramResult.job });
+        results.push({
+          platform: "instagram",
+          jobId: instagramResult.job.id,
+          status: instagramResult.job.status,
+          title: instagramTitle,
+        });
       }
 
       // Generate Twitter campaign if handle exists
       if (customerData.twitterHandle) {
         const twitterTemplateId = getTemplateId("TWITTER");
+        const twitterTitle = generateTitle("twitter");
         const twitterResult = await callCanvaAPI(
           twitterTemplateId as string,
           {
@@ -105,13 +136,20 @@ export const generateCampaignAction = internalAction({
             },
           },
           canvaAccessToken,
+          twitterTitle,
         );
-        results.push({ platform: "twitter", job: twitterResult.job });
+        results.push({
+          platform: "twitter",
+          jobId: twitterResult.job.id,
+          status: twitterResult.job.status,
+          title: twitterTitle,
+        });
       }
 
       // Generate TikTok campaign if handle exists
       if (customerData.tiktokHandle) {
         const tiktokTemplateId = getTemplateId("TIKTOK");
+        const tiktokTitle = generateTitle("tiktok");
         const tiktokResult = await callCanvaAPI(
           tiktokTemplateId as string,
           {
@@ -123,11 +161,18 @@ export const generateCampaignAction = internalAction({
             },
           },
           canvaAccessToken,
+          tiktokTitle,
         );
-        results.push({ platform: "tiktok", job: tiktokResult.job });
+        results.push({
+          platform: "tiktok",
+          jobId: tiktokResult.job.id,
+          status: tiktokResult.job.status,
+          title: tiktokTitle,
+        });
       }
     } catch (error) {
       console.error("Error generating campaign:", error);
+      throw new Error("Failed to generate campaign. Please try again later.");
     }
 
     // Save the results
@@ -137,7 +182,9 @@ export const generateCampaignAction = internalAction({
     });
 
     console.log(
-      `Campaign generation completed for customer: ${customerData.firstName} ${customerData.lastName}`,
+      `Campaign generation initiated for customer: ${customerData.firstName} ${customerData.lastName}`,
     );
+
+    return results;
   },
 });
