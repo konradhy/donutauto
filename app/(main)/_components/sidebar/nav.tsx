@@ -43,7 +43,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
                     "h-9 w-9",
                     link.variant === "default"
                       ? "dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-                      : "dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700",
+                      : "hover:bg-pink-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function Nav({ links, isCollapsed }: NavProps) {
                 buttonVariants({ variant: link.variant, size: "sm" }),
                 link.variant === "default"
                   ? "dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-                  : "dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700",
+                  : "hover:bg-pink-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700",
                 "justify-start",
               )}
             >

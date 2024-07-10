@@ -38,7 +38,7 @@ const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444"];
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 via-yellow-100 to-blue-100 dark:from-pink-900 dark:via-yellow-900 dark:to-blue-900">
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm shadow-sm">
+      <header className="sticky top-0 z-10 bg-pink-50 dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Image
