@@ -6,28 +6,33 @@ export async function callCanvaAPI(
   accessToken: string,
   title?: string,
 ) {
-  const response = await fetch("https://api.canva.com/rest/v1/autofills", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      brand_template_id: templateId,
-      data: data,
-      title: title,
-    }),
-  });
+  try {
+    const response = await fetch("https://api.canva.com/rest/v1/autofills", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        brand_template_id: templateId,
+        data: data,
+        title: title,
+      }),
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Canva API error response:", errorText);
-    throw new Error(
-      `Canva API error: ${response.statusText}. Details: ${errorText}`,
-    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Canva API error response:", errorText);
+      throw new Error(
+        `Canva API error: ${response.statusText}. Details: ${errorText}`,
+      );
+    }
+
+    const result = await response.json();
+    console.log("Canva API response:", result);
+    return result;
+  } catch (error) {
+    console.error("Error calling Canva API:", error);
+    throw new Error("Error calling Canva API");
   }
-
-  const result = await response.json();
-  console.log("Canva API response:", result);
-  return result;
 }

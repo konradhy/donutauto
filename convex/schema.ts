@@ -55,4 +55,11 @@ export default defineSchema({
     jobId: v.string(),
     updatedAt: v.number(),
   }),
+  brandTemplateSettings: defineTable({
+    userId: v.id("users"),
+    emailTemplateId: v.optional(v.string()),
+    instagramTemplateId: v.optional(v.string()),
+    twitterTemplateId: v.optional(v.string()),
+    tiktokTemplateId: v.optional(v.string()),
+  }).index("by_userId", ["userId"]),
 });

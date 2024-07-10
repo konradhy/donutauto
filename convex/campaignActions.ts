@@ -2,10 +2,10 @@
 
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { callCanvaAPI } from "./canvaApi";
 
-export const TEMPLATE_IDS = {
+export const DEFAULT_TEMPLATE_IDS = {
   EMAIL: "DAGKfYlVZgQ",
   INSTAGRAM: "DAGKfYlVZgQ",
   TWITTER: "yDAGKfYlVZgQ",
@@ -15,6 +15,7 @@ export const TEMPLATE_IDS = {
 export const generateCampaignAction = internalAction({
   args: {
     customerId: v.id("customers"),
+    userId: v.id("users"),
     customerData: v.object({
       firstName: v.string(),
       lastName: v.string(),
@@ -31,72 +32,103 @@ export const generateCampaignAction = internalAction({
     const { customerId, customerData, canvaAccessToken } = args;
     const results = [];
 
+    // Fetch custom template settings
+    const templateSettings = await ctx.runQuery(
+      internal.brandTemplateSettings.getBrandTemplateSettingsInternal,
+      {
+        userId: args.userId,
+      },
+    );
+
+    // Helper function to get the appropriate template ID
+    const getTemplateId = (platform: keyof typeof DEFAULT_TEMPLATE_IDS) => {
+      if (templateSettings) {
+        const customId =
+          templateSettings[
+            `${platform.toLowerCase()}TemplateId` as keyof typeof templateSettings
+          ];
+        return customId || DEFAULT_TEMPLATE_IDS[platform];
+      }
+      return DEFAULT_TEMPLATE_IDS[platform];
+    };
+
     try {
-      /*
-The core of the app. We just create a bunch of designs here. 
-Forget the "coupon idea" they are all coupons. So all of them have a unique coupon code being sent in the brand template.
-
-Topics to explore:
-1. AI createing designs that are fun facts about donuts, the customer preferences and a trending topic in the customer's location.
-2. Same as above but are tips
-2. AI Generates a background image for some of them 
-3. Include a QR code on some of the designs 
-4. One where you can upload the customer's logo or photo
-5. Include the companies logo as a watermark on some
-6. Quiz based designs 
-
-I need a system to make it easy for me to add a design type.
-
-*/
-
-      const emailData = {
-        first_name: { type: "text", text: customerData.firstName },
-        last_name: { type: "text", text: customerData.lastName },
-        email: { type: "text", text: customerData.email },
-        preferences: {
-          type: "text",
-          text: customerData.preferences?.join(", ") || "",
-        },
-      };
-
+      // Generate email campaign
+      const emailTemplateId = getTemplateId("EMAIL");
       const emailResult = await callCanvaAPI(
-        TEMPLATE_IDS.EMAIL,
-        emailData,
-        canvaAccessToken,
-        `Email Campaign for ${customerData.firstName} ${customerData.lastName}`,
-      );
-      results.push({ platform: "email", ...emailResult });
-    } catch (error) {
-      console.error("Error generating email campaign:", error);
-    }
-
-    if (customerData.instagramHandle) {
-      try {
-        const instagramData = {
-          first_name: { type: "text", text: customerData.firstName },
-          instagram_handle: {
-            type: "text",
-            text: customerData.instagramHandle,
-          },
+        emailTemplateId as string,
+        {
+          firstName: { type: "text", text: customerData.firstName },
+          lastName: { type: "text", text: customerData.lastName },
+          email: { type: "text", text: customerData.email },
           preferences: {
             type: "text",
             text: customerData.preferences?.join(", ") || "",
           },
-        };
+        },
+        canvaAccessToken,
+      );
+      results.push({ platform: "email", job: emailResult.job });
 
+      // Generate Instagram campaign if handle exists
+      if (customerData.instagramHandle) {
+        const instagramTemplateId = getTemplateId("INSTAGRAM");
         const instagramResult = await callCanvaAPI(
-          TEMPLATE_IDS.INSTAGRAM,
-          instagramData,
+          instagramTemplateId as string,
+          {
+            firstName: { type: "text", text: customerData.firstName },
+            instagramHandle: {
+              type: "text",
+              text: customerData.instagramHandle,
+            },
+            preferences: {
+              type: "text",
+              text: customerData.preferences?.join(", ") || "",
+            },
+          },
           canvaAccessToken,
-          `Instagram Campaign for ${customerData.firstName} ${customerData.lastName}`,
         );
-        results.push({ platform: "instagram", ...instagramResult });
-      } catch (error) {
-        console.error("Error generating Instagram campaign:", error);
+        results.push({ platform: "instagram", job: instagramResult.job });
       }
-    }
 
-    // Similar blocks for Twitter and TikTok...
+      // Generate Twitter campaign if handle exists
+      if (customerData.twitterHandle) {
+        const twitterTemplateId = getTemplateId("TWITTER");
+        const twitterResult = await callCanvaAPI(
+          twitterTemplateId as string,
+          {
+            firstName: { type: "text", text: customerData.firstName },
+            twitterHandle: { type: "text", text: customerData.twitterHandle },
+            preferences: {
+              type: "text",
+              text: customerData.preferences?.join(", ") || "",
+            },
+          },
+          canvaAccessToken,
+        );
+        results.push({ platform: "twitter", job: twitterResult.job });
+      }
+
+      // Generate TikTok campaign if handle exists
+      if (customerData.tiktokHandle) {
+        const tiktokTemplateId = getTemplateId("TIKTOK");
+        const tiktokResult = await callCanvaAPI(
+          tiktokTemplateId as string,
+          {
+            firstName: { type: "text", text: customerData.firstName },
+            tiktokHandle: { type: "text", text: customerData.tiktokHandle },
+            preferences: {
+              type: "text",
+              text: customerData.preferences?.join(", ") || "",
+            },
+          },
+          canvaAccessToken,
+        );
+        results.push({ platform: "tiktok", job: tiktokResult.job });
+      }
+    } catch (error) {
+      console.error("Error generating campaign:", error);
+    }
 
     // Save the results
     await ctx.runMutation(internal.campaigns.saveCampaignResults, {

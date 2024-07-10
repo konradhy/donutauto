@@ -49,6 +49,7 @@ export const generateCampaign = mutation({
         customerId: args.customerId,
         customerData,
         canvaAccessToken: user.canvaAccessToken,
+        userId: user._id,
       },
     );
 
