@@ -76,7 +76,7 @@ export const getAccessToken = query({
       expiration: user.canvaTokenExpiration,
     };
   },
-});
+}); //deprecate
 
 export const isConnected = query({
   args: {},

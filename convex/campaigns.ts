@@ -107,3 +107,74 @@ export const saveCampaignResults = internalMutation({
     return campaignId;
   },
 });
+
+export const generateCampaigns = mutation({
+  args: { customerIds: v.array(v.id("customers")) },
+  handler: async (ctx, args) => {
+    // Check if the user is authenticated
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    // Fetch the user data to get the Canva access token
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
+      .unique();
+    if (!user || !user.canvaAccessToken) {
+      throw new Error("User not found or Canva not connected");
+    }
+
+    // Hardcoded batch size
+    const batchSize = 10;
+
+    // Process customers in batches
+    for (let i = 0; i < args.customerIds.length; i += batchSize) {
+      const batch = args.customerIds.slice(i, i + batchSize);
+
+      const batchPromises = batch.map(async (customerId) => {
+        // Fetch the customer data
+        const customer = await ctx.db.get(customerId);
+        if (!customer) {
+          throw new Error(`Customer with ID ${customerId} not found`);
+        }
+
+        const {
+          _id,
+          _creationTime,
+          createdAt,
+          phone,
+          updatedAt,
+          campaigns,
+          ...customerData
+        } = customer;
+
+        console.log(
+          `Starting campaign generation for customer: ${customer.firstName} ${customer.lastName}`,
+        );
+        console.log(
+          "Part of batch:",
+          i / batchSize + 1,
+          "of",
+          Math.ceil(args.customerIds.length / batchSize),
+        );
+
+        // Schedule the campaign generation action
+        await ctx.scheduler.runAfter(
+          0,
+          internal.campaignActions.generateCampaignAction,
+          {
+            customerId,
+            customerData,
+            userId: user._id,
+          },
+        );
+      });
+
+      await Promise.all(batchPromises);
+    }
+
+    return { message: "Campaign generation started for all customers" };
+  },
+});

@@ -15,6 +15,7 @@ import { CustomUserButton } from "@/components/custom-user-button";
 import { ConnectButton } from "@/components/connect-button";
 import Image from "next/image";
 import { AutofillButton } from "../_components/auto-button";
+import { GenerateCampaignButton } from "@/components/campaigns/generate-bulk-campaigns";
 
 const data = [
   { name: "Mon", total: 120 },
@@ -55,6 +56,7 @@ export default function Dashboard() {
             <ConnectButton />
             <CustomUserButton />
             <AutofillButton />
+            <GenerateCampaignButton />
           </div>
         </div>
       </header>

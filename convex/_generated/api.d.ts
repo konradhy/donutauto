@@ -23,6 +23,7 @@ import type * as canvaApi from "../canvaApi.js";
 import type * as canvaAuth from "../canvaAuth.js";
 import type * as customers from "../customers.js";
 import type * as userManagement from "../userManagement.js";
+import type * as utils from "../utils.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   canvaAuth: typeof canvaAuth;
   customers: typeof customers;
   userManagement: typeof userManagement;
+  utils: typeof utils;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
