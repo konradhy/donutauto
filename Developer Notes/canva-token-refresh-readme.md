@@ -1,23 +1,32 @@
 # Canva Access Token Helper
 
+## bug
+
+- Appeared not to work. Difficult to replicate bug. Could be that i was unauthenticated for a reason other than time.
+
 ## Overview
+
 The Canva Access Token Helper module manages Canva API access tokens within the application. It ensures that a valid token is always available for making API requests to Canva, handling token expiration and refresh automatically. This system enhances security and reliability when interacting with the Canva API, reducing the risk of unauthorized access and API failures due to expired tokens.
 
 ## Key Components
 
 1. `ensureCanvaAccessToken` mutation:
+
    - Public interface for initiating token checks
    - Can be called from client-side code
 
 2. `getCanvaTokenInfo` function:
+
    - Retrieves current token info from the database
    - Checks if the token will expire within the next 15 minutes
 
 3. `refreshCanvaToken` action:
+
    - Makes a secure API call to Canva's token endpoint
    - Uses environment variables for API credentials
 
 4. `updateCanvaTokens` mutation:
+
    - Stores new access token, refresh token, and expiration time
 
 5. `getCanvaAccessToken` action:
@@ -73,7 +82,7 @@ export const someCanvaOperation = internalAction({
   handler: async (ctx, args) => {
     const accessToken = await ctx.runAction(
       internal.accessTokenHelperAction.getCanvaAccessToken,
-      { userId: args.userId }
+      { userId: args.userId },
     );
     // API Call that needs access token
   },
