@@ -150,3 +150,68 @@ export const updateCustomerField = mutation({
     return updatedCustomer;
   },
 });
+
+export const bulkAddCustomers = mutation({
+  args: {
+    customers: v.array(
+      v.object({
+        firstName: v.optional(v.string()),
+        lastName: v.optional(v.string()),
+        email: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        dob: v.optional(v.string()),
+        preferences: v.optional(v.array(v.string())),
+        instagramHandle: v.optional(v.string()),
+        tiktokHandle: v.optional(v.string()),
+        twitterHandle: v.optional(v.string()),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthenticated call to mutation");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
+      .unique();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const results = await Promise.all(
+      args.customers.map(async (customer) => {
+        if (!customer.firstName || !customer.lastName || !customer.email) {
+          return { skipped: true, reason: "Missing required fields" };
+        }
+        try {
+          const customerId = await ctx.db.insert("customers", {
+            ...customer,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            email: customer.email,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+          return { added: true, id: customerId };
+        } catch (error) {
+          return { error: true, message: (error as Error).message };
+        }
+      }),
+    );
+
+    const added = results.filter((result) => "added" in result && result.added);
+    const skipped = results.filter((result) => "skipped" in result);
+    const errors = results.filter((result) => "error" in result);
+
+    return {
+      addedCount: added.length,
+      skippedCount: skipped.length,
+      errorCount: errors.length,
+      addedIds: added.map((result) => ("id" in result ? result.id : null)),
+    };
+  },
+});

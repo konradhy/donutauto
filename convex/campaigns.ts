@@ -43,6 +43,7 @@ export const generateCampaign = mutation({
     );
 
     // Schedule the campaign generation action
+    //TODO: if this fails we should throw an error to the ui
     await ctx.scheduler.runAfter(
       0,
       internal.campaignActions.generateCampaignAction,
