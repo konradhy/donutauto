@@ -12,6 +12,7 @@ import { Nav } from "./nav";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Image from "next/image";
+import brandConfig from "@/lib/brandConfig";
 
 export const Navigation = () => {
   const pathname = usePathname();
@@ -141,7 +142,7 @@ export const Navigation = () => {
           <div className="px-4 py-6">
             <Image
               src="/donut-logo.svg"
-              alt="DonutAuto Logo"
+              alt={`${brandConfig.name} Logo`}
               width={40}
               height={40}
             />

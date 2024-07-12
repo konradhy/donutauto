@@ -1,4 +1,5 @@
 "use client";
+import brandConfig from "@/lib/brandConfig";
 import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,11 +11,13 @@ export default function Home() {
         <div className="flex items-center space-x-2">
           <Image
             src="/donut-logo.svg"
-            alt="DonutAuto Logo"
+            alt={`${brandConfig.name} Logo`}
             width={50}
             height={50}
           />
-          <span className="text-3xl font-bold text-pink-600">DonutAuto</span>
+          <span className="text-3xl font-bold text-pink-600">
+            {brandConfig.name}
+          </span>
         </div>
         <nav>
           <Link
@@ -31,7 +34,7 @@ export default function Home() {
 
       <main className="container mx-auto px-6 py-12 flex flex-col items-center">
         <h1 className="text-6xl font-extrabold text-center text-gray-800 mb-6">
-          Sweeten Your Design Workflow with DonutAuto
+          Sweeten Your Design Workflow with ${brandConfig.name}
         </h1>
         <p className="text-2xl text-center text-gray-700 mb-12 max-w-3xl">
           Sprinkle some AI magic on your Canva designs, automate your content
@@ -91,7 +94,7 @@ export default function Home() {
 
       <footer className="bg-gray-100 py-6 mt-12">
         <div className="container mx-auto px-6 text-center text-gray-600">
-          © 2024 DonutAuto. All rights glazed and sprinkled.
+          {brandConfig.copyright}
         </div>
       </footer>
     </div>

@@ -15,6 +15,7 @@ import { CustomUserButton } from "@/components/custom-user-button";
 import { ConnectButton } from "@/components/connect-button";
 import Image from "next/image";
 import { AutofillButton } from "../_components/auto-button";
+import brandConfig from "@/lib/brandConfig";
 
 const data = [
   { name: "Mon", total: 120 },
@@ -43,12 +44,12 @@ export default function Dashboard() {
           <div className="flex items-center space-x-2">
             <Image
               src="/donut-logo.svg"
-              alt="DonutAuto Logo"
+              alt={`${brandConfig.name} Logo`}
               width={40}
               height={40}
             />
             <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              DonutAuto
+              by {brandConfig.name}
             </h1>
           </div>
           <div className="flex items-center space-x-4">

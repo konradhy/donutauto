@@ -5,6 +5,7 @@ import CSVBulkCustomerUploader from "@/components/customers/csv-upload";
 import CSVTemplateDownloader from "@/components/customers/csv-template";
 import { Toaster } from "sonner";
 import { Info, AlertCircle } from "lucide-react";
+import brandConfig from "@/lib/brandConfig";
 
 export default function CSVBulkUploadPage() {
   return (
@@ -84,8 +85,8 @@ export default function CSVBulkUploadPage() {
               Need Help?
             </h3>
             <p className="text-sm text-blue-600 dark:text-blue-300">
-              Our support team is here to assist you. Contact us at
-              sweet-talk@donutauto.com
+              Our support team is here to assist you. Contact us at{" "}
+              {brandConfig.supportEmail}
             </p>
           </div>
         </div>

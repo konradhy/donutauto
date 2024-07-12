@@ -4,12 +4,13 @@ import { Inter } from "next/font/google";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
+import brandConfig from "@/lib/brandConfig";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Donut Auto",
-  description: "Automate your Canva designs with the help of AI",
+  title: brandConfig.name,
+  description: brandConfig.slogan,
 };
 
 export default function RootLayout({
