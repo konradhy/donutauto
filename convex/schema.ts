@@ -25,6 +25,7 @@ export default defineSchema({
     ownerId: v.id("users"),
     createdAt: v.number(),
     updatedAt: v.number(),
+    invitationCode: v.optional(v.string()),
   }),
 
   invitations: defineTable({

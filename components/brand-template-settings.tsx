@@ -132,7 +132,7 @@ export default function BrandTemplateSettings() {
                   Baking Changes...
                 </>
               ) : (
-                "Sprinkle These Settings 🍩"
+                "Save The Template ID Settings 🍩"
               )}
             </Button>
           </form>

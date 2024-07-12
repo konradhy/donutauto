@@ -23,6 +23,8 @@ import type * as campaigns from "../campaigns.js";
 import type * as canvaApi from "../canvaApi.js";
 import type * as canvaAuth from "../canvaAuth.js";
 import type * as customers from "../customers.js";
+import type * as invitations from "../invitations.js";
+import type * as organizations from "../organizations.js";
 import type * as userManagement from "../userManagement.js";
 import type * as utils from "../utils.js";
 
@@ -44,6 +46,8 @@ declare const fullApi: ApiFromModules<{
   canvaApi: typeof canvaApi;
   canvaAuth: typeof canvaAuth;
   customers: typeof customers;
+  invitations: typeof invitations;
+  organizations: typeof organizations;
   userManagement: typeof userManagement;
   utils: typeof utils;
 }>;

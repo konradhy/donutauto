@@ -1,15 +1,12 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { ConvexError } from "convex/values";
+import { getCurrentUser } from "./accessControlHelpers";
 
 /*
 To do:
 1. Delete user 
 2. Update roles: admin, editor, scheduler user?
-
- 
-
-
 
 */
 
@@ -77,5 +74,15 @@ export const getUser = query({
         q.eq("tokenIdentifier", identity.tokenIdentifier),
       )
       .unique();
+  },
+});
+
+export const checkUserOrganization = query({
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    return {
+      hasOrganization: !!user.organizationId,
+      organizationId: user.organizationId,
+    };
   },
 });

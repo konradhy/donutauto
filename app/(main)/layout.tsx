@@ -8,6 +8,7 @@ import { Spinner } from "@/components/spinner";
 import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { OrgAuthGuard } from "@/components/organization/OrgAuthGuard";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -39,12 +40,14 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-background dark:bg-gray-800">
-      <Navigation />
-      <main className="flex-1 shadow-inner bg-background dark:bg-gray-800 overflow-y-auto">
-        {children}
-      </main>
-    </div>
+    <OrgAuthGuard>
+      <div className="flex min-h-screen bg-background dark:bg-gray-800">
+        <Navigation />
+        <main className="flex-1 shadow-inner bg-background dark:bg-gray-800 overflow-y-auto">
+          {children}
+        </main>
+      </div>
+    </OrgAuthGuard>
   );
 };
 
