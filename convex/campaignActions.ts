@@ -14,6 +14,7 @@ export const generateCampaignAction = internalAction({
   args: {
     customerId: v.id("customers"),
     userId: v.id("users"),
+    organizationId: v.id("organizations"),
     customerData: v.object({
       firstName: v.string(),
       lastName: v.string(),
@@ -177,6 +178,8 @@ export const generateCampaignAction = internalAction({
     await ctx.runMutation(internal.campaigns.saveCampaignResults, {
       customerId,
       results,
+      userId,
+      organizationId: args.organizationId,
     });
 
     console.log(

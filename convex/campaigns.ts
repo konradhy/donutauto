@@ -2,22 +2,14 @@ import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 import { internal } from "./_generated/api";
-import { title } from "process";
+import { getCurrentUserAndOrganization } from "./accessControlHelpers";
 
 export const generateCampaign = mutation({
   args: { customerId: v.id("customers") },
   handler: async (ctx, args) => {
     // Check if the user is authenticated
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
 
-    // Fetch the user data to get the Canva access token
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
-      .unique();
+    const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
     if (!user || !user.canvaAccessToken) {
       throw new Error("User not found or Canva not connected");
@@ -50,8 +42,8 @@ export const generateCampaign = mutation({
       {
         customerId: args.customerId,
         customerData,
-
         userId: user._id,
+        organizationId: organization._id,
       },
     );
 
@@ -59,11 +51,11 @@ export const generateCampaign = mutation({
   },
 });
 
-// campaigns.ts
-
 export const saveCampaignResults = internalMutation({
   args: {
     customerId: v.id("customers"),
+    userId: v.id("users"),
+    organizationId: v.id("organizations"),
     results: v.array(
       v.object({
         platform: v.string(),
@@ -83,6 +75,8 @@ export const saveCampaignResults = internalMutation({
       updatedAt: Date.now(),
       status: "in_progress",
       platforms: results.map((r) => r.platform),
+      userId: args.userId,
+      organizationId: args.organizationId,
     });
 
     // Save each job
@@ -95,6 +89,8 @@ export const saveCampaignResults = internalMutation({
         status: result.status,
         updatedAt: Date.now(),
         title: result.title,
+        userId: args.userId,
+        organizationId: args.organizationId,
       });
     }
 
@@ -112,19 +108,12 @@ export const saveCampaignResults = internalMutation({
 export const generateCampaigns = mutation({
   args: { customerIds: v.array(v.id("customers")) },
   handler: async (ctx, args) => {
-    // Check if the user is authenticated
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
+    const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
     // Fetch the user data to get the Canva access token
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("tokenIdentifier"), identity.tokenIdentifier))
-      .unique();
+
     if (!user || !user.canvaAccessToken) {
-      throw new Error("User not found or Canva not connected");
+      throw new Error(" Canva not connected");
     }
 
     // Hardcoded batch size
@@ -169,6 +158,7 @@ export const generateCampaigns = mutation({
             customerId,
             customerData,
             userId: user._id,
+            organizationId: organization._id,
           },
         );
       });
