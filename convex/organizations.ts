@@ -2,7 +2,13 @@
 
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUser } from "./accessControlHelpers";
+
+import {
+  getCurrentUserAndOrganization,
+  requireOwnership,
+  requireRole,
+  getCurrentUser,
+} from "./accessControlHelpers";
 
 // Create a new organization
 export const create = mutation({
@@ -10,7 +16,6 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
 
-    // Check if the user already has an organization
     if (user.organizationId) {
       throw new Error("User already belongs to an organization");
     }
@@ -23,8 +28,10 @@ export const create = mutation({
       updatedAt: Date.now(),
     });
 
-    // Update the user with the new organization ID
-    await ctx.db.patch(user._id, { organizationId });
+    await ctx.db.patch(user._id, {
+      organizationId,
+      role: "admin", // Set the creator's role to admin
+    });
 
     return organizationId;
   },
@@ -92,6 +99,8 @@ export const listOrganizationUsers = query({
     if (!user.organizationId) {
       throw new Error("User does not belong to an organization");
     }
+
+    //requireRole(user, ["admin"]); // Think about it.
 
     // Fetch all users in the organization
     const organizationUsers = await ctx.db

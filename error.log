@@ -1,0 +1,1 @@
+{"error":"","ip":"::ffff:127.0.0.1","level":"error","message":"Auth Error: token_identifier_retrieval_error","path":"http://localhost:3000/api/canva/authorize","service":"user-service","timestamp":"2024-07-12T22:25:42.721Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36","userId":"unknown"}

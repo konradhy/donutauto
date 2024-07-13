@@ -53,6 +53,8 @@ export async function requireOwnership(
 
 export function requireRole(user: any, allowedRoles: string[]) {
   if (!user.role || !allowedRoles.includes(user.role)) {
-    throw new Error("User does not have the required role");
+    throw new Error(
+      `User does not have the required role. Required: ${allowedRoles.join(" or ")}`,
+    );
   }
 }
