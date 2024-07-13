@@ -9,6 +9,7 @@ import {
   HelpCircle,
   LucideIcon,
   Plus,
+  Building,
 } from "lucide-react";
 
 export interface NavLink {
@@ -67,6 +68,13 @@ export const bottomLinks: NavLink[] = [
     variant: "ghost",
     link: "/settings",
     name: "settings",
+  },
+  {
+    title: "Organization",
+    icon: Building,
+    variant: "ghost",
+    link: "/organization",
+    name: "organization",
   },
   {
     title: "Help",

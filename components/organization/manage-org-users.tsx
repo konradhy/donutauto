@@ -16,13 +16,14 @@ export default function ManageOrgUsers() {
   const pendingInvitations = useQuery(api.invitations.listPendingInvitations);
   const revokeInvitation = useMutation(api.invitations.revokeInvitation);
 
-  const handleRevokeInvitation = async (invitationId: Id<"invitations">) => {
-    try {
-      await revokeInvitation({ invitationId });
-      toast.success("Invitation revoked successfully!");
-    } catch (error) {
-      toast.error("Failed to revoke invitation: " + (error as Error).message);
-    }
+  const handleRevokeInvitation = (invitationId: Id<"invitations">) => {
+    revokeInvitation({ invitationId })
+      .then(() => {
+        toast.success("Invitation revoked successfully!");
+      })
+      .catch((error) => {
+        toast.error("Failed to revoke invitation: " + error.message);
+      });
   };
 
   if (orgUsers === undefined || pendingInvitations === undefined) {

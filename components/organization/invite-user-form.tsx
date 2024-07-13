@@ -17,19 +17,20 @@ export function InviteUserForm() {
   const [role, setRole] = useState("editor");
   const createInvitation = useMutation(api.invitations.createInvitation);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await createInvitation({
-        email,
-        role: role as "editor" | "viewer" | "admin",
+    createInvitation({
+      email,
+      role: role as "editor" | "viewer" | "admin",
+    })
+      .then(() => {
+        toast.success("Invitation sent successfully!");
+        setEmail("");
+        setRole("editor");
+      })
+      .catch((error) => {
+        toast.error("Failed to send invitation: " + error.message);
       });
-      toast.success("Invitation sent successfully!");
-      setEmail("");
-      setRole("editor");
-    } catch (error) {
-      toast.error("Failed to send invitation: " + (error as Error).message);
-    }
   };
 
   return (

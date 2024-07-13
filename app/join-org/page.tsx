@@ -35,29 +35,27 @@ export default function JoinOrg() {
       : "skip",
   );
 
-  const handleCreateOrg = async (e: React.FormEvent) => {
+  const handleCreateOrg = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await createOrganization({ name: orgName });
-      toast.success("Organization created successfully! 🎉");
-      router.push("/dashboard");
-    } catch (error) {
-      toast.error(
-        "Oops! Couldn't create organization: " + (error as Error).message,
-      );
-    }
+    createOrganization({ name: orgName })
+      .then(() => {
+        toast.success("Organization created successfully! 🎉");
+        router.push("/dashboard");
+      })
+      .catch((error) => {
+        toast.error("Oops! Couldn't create organization: " + error.message);
+      });
   };
 
-  const handleAcceptInvitation = async (invitationId: Id<"invitations">) => {
-    try {
-      await acceptInvitation({ invitationId });
-      toast.success("Yay! You've joined the organization! 🙌");
-      router.push("/dashboard");
-    } catch (error) {
-      toast.error(
-        "Uh-oh! Couldn't accept invitation: " + (error as Error).message,
-      );
-    }
+  const handleAcceptInvitation = (invitationId: Id<"invitations">) => {
+    acceptInvitation({ invitationId })
+      .then(() => {
+        toast.success("Yay! You've joined the organization! 🙌");
+        router.push("/dashboard");
+      })
+      .catch((error) => {
+        toast.error("Uh-oh! Couldn't accept invitation: " + error.message);
+      });
   };
 
   if (invitations === undefined) {
@@ -88,7 +86,7 @@ export default function JoinOrg() {
                 >
                   <CardContent className="pt-6">
                     <p className="text-gray-700 dark:text-gray-300">
-                      You're invited to join: {invitation.organizationName}
+                      You&apos;re invited to join: {invitation.organizationName}
                     </p>
                   </CardContent>
                   <CardFooter>
