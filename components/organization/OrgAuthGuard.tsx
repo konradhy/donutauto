@@ -1,5 +1,3 @@
-// File: components/organization/OrgAuthGuard.tsx
-
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";

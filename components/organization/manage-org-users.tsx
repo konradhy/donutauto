@@ -1,5 +1,3 @@
-// File: app/org/users/page.tsx
-
 "use client";
 
 import { useQuery, useMutation } from "convex/react";
