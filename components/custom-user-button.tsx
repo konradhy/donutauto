@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserButton, useUser, useClerk } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import { revoke } from "@/lib/services/auth";
 
 import {

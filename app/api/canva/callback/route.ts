@@ -3,13 +3,13 @@ import { OauthService } from "@/lib/canva-api";
 import { getBasicAuthClient } from "@/lib/canva-api/client";
 import { api } from "@/convex/_generated/api";
 
-import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { fetchMutation } from "convex/nextjs";
 import { getAbsoluteUrl } from "@/lib/utils";
 import {
   OAUTH_CODE_VERIFIER_COOKIE_NAME,
   OAUTH_STATE_COOKIE_NAME,
 } from "@/lib/services/auth";
-import { logAuthEvent, logAuthError } from "@/lib/logs/authLogger";
+import { logAuthEvent } from "@/lib/logs/authLogger";
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET(request: NextRequest) {

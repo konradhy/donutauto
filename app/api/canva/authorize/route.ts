@@ -7,7 +7,7 @@ import {
   OAUTH_STATE_COOKIE_NAME,
 } from "@/lib/services/auth";
 import { getAuthorizationUrl } from "@/lib/services/auth";
-import { withErrorHandler } from "@/lib/logs/apiErrorHandler";
+
 import { logAuthEvent, logAuthError } from "@/lib/logs/authLogger";
 import { currentUser } from "@clerk/nextjs/server";
 

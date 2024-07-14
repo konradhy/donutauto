@@ -18,6 +18,8 @@ _DonutAuto in action: Creating a personalized marketing campaign_
 
 ## Key Features
 
+# Details of each feature available in /Developer Notes
+
 1. Customer Management:
 
    - CRUD operations for customer data

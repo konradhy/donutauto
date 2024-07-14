@@ -1,14 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-import {
-  getBasicAuthClient,
-  getUserClient,
-  getAccessTokenForUser,
-} from "@/lib/canva-api/client";
+import { getUserClient, getAccessTokenForUser } from "@/lib/canva-api/client";
 import { AutofillService } from "@/lib/canva-api/services.gen";
 
 //this file will refactor into a convex function
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const accessToken = await getAccessTokenForUser();
 

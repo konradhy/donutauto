@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { ChevronsLeft, GripVertical, MenuIcon } from "lucide-react";
+import { ChevronsLeft, MenuIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { NavLink, initialTopLinks, bottomLinks } from "./navigation-links";
