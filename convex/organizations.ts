@@ -7,6 +7,7 @@ import {
   requireRole,
   getCurrentUser,
 } from "./accessControlHelpers";
+import { ActivityTypes, logActivityHelper } from "./activities/activityHelpers";
 
 // Create a new organization
 export const create = mutation({
@@ -19,12 +20,31 @@ export const create = mutation({
     }
 
     // Create the new organization
+
     const organizationId = await ctx.db.insert("organizations", {
       name: args.name,
       ownerId: user._id,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
+
+    //is this okay?
+    const organization = await ctx.db.get(organizationId);
+    if (!organization) {
+      throw new Error(
+        "Organization not found. You can't query a doc that you just inserted",
+      );
+    }
+
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.CREATE_ORGANIZATION,
+      {
+        organizationName: organization.name,
+      },
+    );
 
     await ctx.db.patch(user._id, {
       organizationId,
@@ -138,6 +158,18 @@ export const acceptInvitation = mutation({
 
     // Update invitation status
     await ctx.db.patch(args.invitationId, { status: "accepted" });
+
+    const organization = await ctx.db.get(invitation.organizationId);
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.INVITE_ACCEPTED,
+      {},
+    );
 
     return invitation.organizationId;
   },

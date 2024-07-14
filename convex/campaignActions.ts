@@ -180,6 +180,7 @@ export const generateCampaignAction = internalAction({
       results,
       userId,
       organizationId: args.organizationId,
+      customerName: `${customerData.firstName} `,
     });
 
     console.log(

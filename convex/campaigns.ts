@@ -1,8 +1,12 @@
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-
 import { internal } from "./_generated/api";
 import { getCurrentUserAndOrganization } from "./accessControlHelpers";
+import {
+  logActivityHelper,
+  logInternalActivity,
+} from "./activities/activityHelpers";
+import { ActivityTypes } from "./activities/activityHelpers";
 
 export const generateCampaign = mutation({
   args: { customerId: v.id("customers") },
@@ -20,6 +24,8 @@ export const generateCampaign = mutation({
     if (!customer) {
       throw new Error("Customer not found");
     }
+
+    //adjust whenever a new field is added to customer
     const {
       _id,
       _creationTime,
@@ -27,6 +33,8 @@ export const generateCampaign = mutation({
       phone,
       updatedAt,
       campaigns,
+      organizationId,
+      userId,
       ...customerData
     } = customer;
 
@@ -36,18 +44,37 @@ export const generateCampaign = mutation({
 
     // Schedule the campaign generation action
     //TODO: if this fails we should throw an error to the ui
-    await ctx.scheduler.runAfter(
-      0,
-      internal.campaignActions.generateCampaignAction,
-      {
-        customerId: args.customerId,
-        customerData,
-        userId: user._id,
-        organizationId: organization._id,
-      },
-    );
+    try {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.campaignActions.generateCampaignAction,
+        {
+          customerId: args.customerId,
+          customerData,
+          userId: user._id,
+          organizationId: organization._id,
+        },
+      );
 
-    return { message: "Campaign generation started" };
+      // Log the activity
+
+      return { message: "Campaign generation started" };
+    } catch (error) {
+      console.error("Failed to start campaign generation:", error);
+
+      // await logActivityHelper(ctx,
+      //   user._id,
+      //   organization._id,
+      //   ActivityTypes.CAMPAIGN_GENERATION_FAILED,
+      //   {
+      //     customerName: `${customer.firstName} ${customer.lastName}`,
+      //     customerId: args.customerId,
+      //     error: error.message,
+      //   }
+      // );
+
+      throw new Error("Failed to start campaign generation. Please try again.");
+    }
   },
 });
 
@@ -56,6 +83,7 @@ export const saveCampaignResults = internalMutation({
     customerId: v.id("customers"),
     userId: v.id("users"),
     organizationId: v.id("organizations"),
+    customerName: v.string(),
     results: v.array(
       v.object({
         platform: v.string(),
@@ -78,6 +106,17 @@ export const saveCampaignResults = internalMutation({
       userId: args.userId,
       organizationId: args.organizationId,
     });
+
+    await logInternalActivity(
+      ctx,
+      args.userId,
+      args.organizationId,
+      ActivityTypes.CAMPAIGN_CREATED,
+      {
+        campaignName: `${args.customerName}'s Full Package`,
+        itemId: campaignId,
+      },
+    );
 
     // Save each job
     for (const result of results) {
@@ -110,62 +149,91 @@ export const generateCampaigns = mutation({
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
-    // Fetch the user data to get the Canva access token
-
     if (!user || !user.canvaAccessToken) {
-      throw new Error(" Canva not connected");
+      throw new Error("Canva not connected");
     }
 
-    // Hardcoded batch size
     const batchSize = 10;
+    let successCount = 0;
+    let failureCount = 0;
 
     // Process customers in batches
     for (let i = 0; i < args.customerIds.length; i += batchSize) {
       const batch = args.customerIds.slice(i, i + batchSize);
 
       const batchPromises = batch.map(async (customerId) => {
-        // Fetch the customer data
-        const customer = await ctx.db.get(customerId);
-        if (!customer) {
-          throw new Error(`Customer with ID ${customerId} not found`);
+        try {
+          // Fetch the customer data
+          const customer = await ctx.db.get(customerId);
+          if (!customer) {
+            throw new Error(`Customer with ID ${customerId} not found`);
+          }
+
+          const {
+            _id,
+            _creationTime,
+            createdAt,
+            phone,
+            updatedAt,
+            campaigns,
+            organizationId,
+            userId,
+            ...customerData
+          } = customer;
+
+          console.log(
+            `Starting campaign generation for customer: ${customer.firstName} ${customer.lastName}`,
+          );
+          console.log(
+            "Part of batch:",
+            Math.floor(i / batchSize) + 1,
+            "of",
+            Math.ceil(args.customerIds.length / batchSize),
+          );
+
+          // Schedule the campaign generation action
+          await ctx.scheduler.runAfter(
+            0,
+            internal.campaignActions.generateCampaignAction,
+            {
+              customerId,
+              customerData,
+              userId: user._id,
+              organizationId: organization._id,
+            },
+          );
+
+          successCount++;
+        } catch (error) {
+          failureCount++;
+          console.error(
+            `Failed to generate campaign for customer ${customerId}:`,
+            error,
+          );
         }
-
-        const {
-          _id,
-          _creationTime,
-          createdAt,
-          phone,
-          updatedAt,
-          campaigns,
-          ...customerData
-        } = customer;
-
-        console.log(
-          `Starting campaign generation for customer: ${customer.firstName} ${customer.lastName}`,
-        );
-        console.log(
-          "Part of batch:",
-          i / batchSize + 1,
-          "of",
-          Math.ceil(args.customerIds.length / batchSize),
-        );
-
-        // Schedule the campaign generation action
-        await ctx.scheduler.runAfter(
-          0,
-          internal.campaignActions.generateCampaignAction,
-          {
-            customerId,
-            customerData,
-            userId: user._id,
-            organizationId: organization._id,
-          },
-        );
       });
 
       await Promise.all(batchPromises);
     }
 
-    return { message: "Campaign generation started for all customers" };
+    // Log the bulk campaign creation
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.BULK_CAMPAIGN_CREATED,
+      {
+        totalCampaigns: args.customerIds.length.toString(),
+        successCount: successCount.toString(),
+        failureCount: failureCount.toString(),
+      },
+    );
+
+    return {
+      message: "Bulk campaign generation process completed",
+      totalCampaigns: args.customerIds.length,
+      successCount,
+      failureCount,
+    };
   },
 });

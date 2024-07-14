@@ -86,7 +86,8 @@ export default function JoinOrg() {
                 >
                   <CardContent className="pt-6">
                     <p className="text-gray-700 dark:text-gray-300">
-                      You&apos;re invited to join: {invitation.organizationName}
+                      {invitation.organizationName} invited you to join their
+                      organization!
                     </p>
                   </CardContent>
                   <CardFooter>

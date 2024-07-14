@@ -4,6 +4,7 @@ import {
   getCurrentUserAndOrganization,
   requireRole,
 } from "./accessControlHelpers";
+import { ActivityTypes, logActivityHelper } from "./activities/activityHelpers";
 
 export const listUserInvitations = query({
   args: { email: v.string() },
@@ -64,6 +65,16 @@ export const createInvitation = mutation({
       invitedAt: Date.now(),
       expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
     });
+
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.INVITE_SENT,
+      {
+        inviteeEmail: args.email,
+      },
+    );
 
     // TODO: Send an email to the invited user (implement this later)
 

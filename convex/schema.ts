@@ -112,6 +112,7 @@ export default defineSchema({
     organizationId: v.id("organizations"),
     action: v.string(),
     details: v.optional(v.string()),
+    itemId: v.optional(v.string()), //to link to individual customer, campaign, design
   })
     .index("by_userId", ["userId"])
     .index("by_organization", ["organizationId"]),

@@ -32,7 +32,10 @@ export const add = mutation({
       user,
       organization,
       ActivityTypes.CUSTOMER_CREATED,
-      { customerName: `${args.firstName} ${args.lastName}` },
+      {
+        customerName: `${args.firstName} ${args.lastName}`,
+        itemId: customerId,
+      },
     );
 
     return customerId;
@@ -153,7 +156,7 @@ export const updateCustomer = mutation({
 export const deleteCustomer = mutation({
   args: { id: v.id("customers") },
   handler: async (ctx, args) => {
-    const { organization } = await getCurrentUserAndOrganization(ctx);
+    const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
     const existingCustomer = await ctx.db.get(args.id);
     if (
@@ -162,6 +165,16 @@ export const deleteCustomer = mutation({
     ) {
       throw new Error("Customer not found in your organization");
     }
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.CUSTOMER_DELETED,
+      {
+        customerName: `${existingCustomer.firstName} ${existingCustomer.lastName}`,
+        itemId: existingCustomer._id,
+      },
+    );
 
     await ctx.db.delete(args.id);
     return { success: true };
