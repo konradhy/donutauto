@@ -16,6 +16,7 @@ import { ConnectButton } from "@/components/connect-button";
 import Image from "next/image";
 import { AutofillButton } from "../_components/auto-button";
 import brandConfig from "@/lib/brandConfig";
+import { RecentActivityCard } from "@/components/dashboard/recent-activity-card";
 
 const data = [
   { name: "Mon", total: 120 },
@@ -152,33 +153,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 backdrop-blur-sm shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <li className="flex items-center">
-                  <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                  Campaign &quot;Summer Sprinkles&quot; created
-                </li>
-                <li className="flex items-center">
-                  <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                  200 emails sent for &quot;Chocolate Lovers&quot; campaign
-                </li>
-                <li className="flex items-center">
-                  <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
-                  50 new customers added from CSV upload
-                </li>
-                <li className="flex items-center">
-                  <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-                  Instagram post scheduled for tomorrow at 9 AM
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
+          <RecentActivityCard />
         </div>
       </main>
     </div>

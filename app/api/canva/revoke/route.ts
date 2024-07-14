@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { api } from "@/convex/_generated/api";
 
 import { OauthService } from "@/lib/canva-api";
@@ -6,7 +6,7 @@ import { getBasicAuthClient } from "@/lib/canva-api/client";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { auth } from "@clerk/nextjs/server";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const { userId, getToken } = auth();
   if (!userId) {
     return new Response("User is not signed in.", { status: 401 });
