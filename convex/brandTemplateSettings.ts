@@ -1,5 +1,3 @@
-// convex/brandTemplateSettings.ts
-
 import { internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserAndOrganization } from "./accessControlHelpers";

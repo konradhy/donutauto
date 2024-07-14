@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { action } from "./_generated/server";
 
 export default defineSchema({
   users: defineTable({
@@ -102,6 +103,15 @@ export default defineSchema({
     instagramTemplateId: v.optional(v.string()),
     twitterTemplateId: v.optional(v.string()),
     tiktokTemplateId: v.optional(v.string()),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_organization", ["organizationId"]),
+
+  activities: defineTable({
+    userId: v.id("users"),
+    organizationId: v.id("organizations"),
+    action: v.string(),
+    details: v.optional(v.string()),
   })
     .index("by_userId", ["userId"])
     .index("by_organization", ["organizationId"]),

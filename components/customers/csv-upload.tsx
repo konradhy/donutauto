@@ -5,7 +5,6 @@ import { api } from "@/convex/_generated/api";
 import Papa from "papaparse";
 import { toast } from "sonner";
 import { Upload, FileText, CheckCircle, XCircle } from "lucide-react";
-import CSVTemplateDownloader from "./csv-template";
 
 export default function CSVBulkCustomerUploader() {
   const [file, setFile] = useState<File | null>(null);
@@ -13,6 +12,7 @@ export default function CSVBulkCustomerUploader() {
   const [uploadStatus, setUploadStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
+
   const bulkAddCustomers = useMutation(api.customers.bulkAddCustomers);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +85,12 @@ export default function CSVBulkCustomerUploader() {
     }
   };
 
+  const labelClassName = `flex justify-center items-center w-full h-32 px-4 transition bg-white dark:bg-gray-700 border-2 ${
+    file
+      ? "border-green-300 dark:border-green-600 text-green-500 dark:text-green-400"
+      : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+  } border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none`;
+
   return (
     <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
       <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
@@ -92,13 +98,10 @@ export default function CSVBulkCustomerUploader() {
       </h3>
 
       <div className="mb-4">
-        <label
-          htmlFor="csv-upload"
-          className="flex justify-center items-center w-full h-32 px-4 transition bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none"
-        >
+        <label htmlFor="csv-upload" className={labelClassName}>
           <span className="flex items-center space-x-2">
-            <Upload className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-            <span className="font-medium text-gray-600 dark:text-gray-300">
+            <Upload className="w-6 h-6" />
+            <span className="font-medium">
               {file ? file.name : "Drop CSV file here or click to upload"}
             </span>
           </span>

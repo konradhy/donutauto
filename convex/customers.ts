@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { getCurrentUserAndOrganization } from "./accessControlHelpers";
+import { ActivityTypes, logActivityHelper } from "./activities/activityHelpers";
 
 export const add = mutation({
   args: {
@@ -18,9 +19,6 @@ export const add = mutation({
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
-    // Get the user's information
-
-    // Insert the new customer
     const customerId = await ctx.db.insert("customers", {
       ...args,
       createdAt: Date.now(),
@@ -29,11 +27,17 @@ export const add = mutation({
       organizationId: organization._id,
     });
 
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.CUSTOMER_CREATED,
+      { customerName: `${args.firstName} ${args.lastName}` },
+    );
+
     return customerId;
   },
 });
-
-// Get a single customer by ID
 
 export const bulkAddCustomers = mutation({
   args: {
@@ -80,6 +84,14 @@ export const bulkAddCustomers = mutation({
     const added = results.filter((result) => "added" in result && result.added);
     const skipped = results.filter((result) => "skipped" in result);
     const errors = results.filter((result) => "error" in result);
+
+    await logActivityHelper(
+      ctx,
+      user,
+      organization,
+      ActivityTypes.BULK_CUSTOMERS_CREATED,
+      { customerCount: added.length.toString() },
+    );
 
     return {
       addedCount: added.length,

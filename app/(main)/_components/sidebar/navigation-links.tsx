@@ -10,6 +10,7 @@ import {
   LucideIcon,
   Plus,
   Building,
+  Group,
 } from "lucide-react";
 
 export interface NavLink {
@@ -58,6 +59,13 @@ export const initialTopLinks: NavLink[] = [
     variant: "ghost",
     link: "/customers/add",
     name: "new-customer",
+  },
+  {
+    title: "Multi Customer Upload",
+    icon: Group,
+    variant: "ghost",
+    link: "/customers/bulk-upload",
+    name: "bulk-upload",
   },
 ];
 

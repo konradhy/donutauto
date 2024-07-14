@@ -17,6 +17,8 @@ import type {
 import type * as accessControlHelpers from "../accessControlHelpers.js";
 import type * as accessTokenHelper from "../accessTokenHelper.js";
 import type * as accessTokenHelperAction from "../accessTokenHelperAction.js";
+import type * as activities_activities from "../activities/activities.js";
+import type * as activities_activityHelpers from "../activities/activityHelpers.js";
 import type * as brandTemplateSettings from "../brandTemplateSettings.js";
 import type * as campaignActions from "../campaignActions.js";
 import type * as campaigns from "../campaigns.js";
@@ -40,6 +42,8 @@ declare const fullApi: ApiFromModules<{
   accessControlHelpers: typeof accessControlHelpers;
   accessTokenHelper: typeof accessTokenHelper;
   accessTokenHelperAction: typeof accessTokenHelperAction;
+  "activities/activities": typeof activities_activities;
+  "activities/activityHelpers": typeof activities_activityHelpers;
   brandTemplateSettings: typeof brandTemplateSettings;
   campaignActions: typeof campaignActions;
   campaigns: typeof campaigns;
