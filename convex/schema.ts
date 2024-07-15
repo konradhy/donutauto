@@ -91,6 +91,7 @@ export default defineSchema({
     status: v.string(), // "created", "failed"
     jobId: v.string(),
     updatedAt: v.number(),
+    type: v.string(),
   })
     .index("by_organization", ["organizationId"])
     .index("by_campaignId", ["campaignId"])

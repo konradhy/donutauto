@@ -90,6 +90,7 @@ export const saveCampaignResults = internalMutation({
         jobId: v.string(),
         status: v.string(),
         title: v.string(),
+        type: v.string(),
       }),
     ),
   },
@@ -130,6 +131,7 @@ export const saveCampaignResults = internalMutation({
         title: result.title,
         userId: args.userId,
         organizationId: args.organizationId,
+        type: result.type,
       });
     }
 

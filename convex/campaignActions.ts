@@ -90,6 +90,7 @@ export const generateCampaignAction = internalAction({
         jobId: emailResult.job.id,
         status: emailResult.job.status,
         title: emailTitle,
+        type: "general",
       });
 
       // Generate Instagram campaign if handle exists
@@ -117,6 +118,7 @@ export const generateCampaignAction = internalAction({
           jobId: instagramResult.job.id,
           status: instagramResult.job.status,
           title: instagramTitle,
+          type: "general",
         });
       }
 
@@ -142,6 +144,7 @@ export const generateCampaignAction = internalAction({
           jobId: twitterResult.job.id,
           status: twitterResult.job.status,
           title: twitterTitle,
+          type: "general",
         });
       }
 
@@ -167,6 +170,7 @@ export const generateCampaignAction = internalAction({
           jobId: tiktokResult.job.id,
           status: tiktokResult.job.status,
           title: tiktokTitle,
+          type: "general",
         });
       }
     } catch (error) {
