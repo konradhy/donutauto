@@ -2,7 +2,6 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserAndOrganization } from "./accessControlHelpers";
 
-// Define the possible platforms and types
 const platforms = ["twitter", "instagram", "email"] as const;
 type Platform = (typeof platforms)[number];
 
@@ -13,45 +12,64 @@ export const getMetrics = query({
   args: {
     startDate: v.number(),
     endDate: v.number(),
+    userId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
     const { organization } = await getCurrentUserAndOrganization(ctx);
 
-    const customers = await ctx.db
+    const customersPromise = ctx.db
       .query("customers")
       .withIndex("by_organization", (q) =>
         q.eq("organizationId", organization._id),
       )
-      .filter(
-        (q) =>
-          q.gte(q.field("_creationTime"), args.startDate) &&
+      .filter((q) => {
+        const dateFilter = q.and(
+          q.gte(q.field("_creationTime"), args.startDate),
           q.lt(q.field("_creationTime"), args.endDate),
-      )
+        );
+        return args.userId
+          ? q.and(dateFilter, q.eq(q.field("userId"), args.userId))
+          : dateFilter;
+      })
       .collect();
 
-    const campaigns = await ctx.db
+    const campaignsPromise = ctx.db
       .query("campaigns")
       .withIndex("by_organization", (q) =>
         q.eq("organizationId", organization._id),
       )
-      .filter(
-        (q) =>
-          q.gte(q.field("_creationTime"), args.startDate) &&
+      .filter((q) => {
+        const dateFilter = q.and(
+          q.gte(q.field("_creationTime"), args.startDate),
           q.lt(q.field("_creationTime"), args.endDate),
-      )
+        );
+        return args.userId
+          ? q.and(dateFilter, q.eq(q.field("userId"), args.userId))
+          : dateFilter;
+      })
       .collect();
 
-    const designs = await ctx.db
+    const designsPromise = ctx.db
       .query("designs")
       .withIndex("by_organization", (q) =>
         q.eq("organizationId", organization._id),
       )
-      .filter(
-        (q) =>
-          q.gte(q.field("_creationTime"), args.startDate) &&
+      .filter((q) => {
+        const dateFilter = q.and(
+          q.gte(q.field("_creationTime"), args.startDate),
           q.lt(q.field("_creationTime"), args.endDate),
-      )
+        );
+        return args.userId
+          ? q.and(dateFilter, q.eq(q.field("userId"), args.userId))
+          : dateFilter;
+      })
       .collect();
+
+    const [customers, campaigns, designs] = await Promise.all([
+      customersPromise,
+      campaignsPromise,
+      designsPromise,
+    ]);
 
     // Initialize design metrics
     const designMetrics = {

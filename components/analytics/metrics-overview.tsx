@@ -1,25 +1,35 @@
-
-"use client";
-
 import React from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function MetricsOverview() {
   const [startDate, setStartDate] = React.useState<Date>(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
   );
   const [endDate, setEndDate] = React.useState<Date>(new Date());
+  const [selectedUserId, setSelectedUserId] = React.useState<
+    Id<"users"> | undefined
+  >(undefined);
 
+  const users = useQuery(api.organizations.listOrganizationUsers);
   const metrics = useQuery(api.metrics.getMetrics, {
     startDate: startDate.getTime(),
     endDate: endDate.getTime(),
+    userId: selectedUserId,
   });
 
-  if (!metrics) {
-    return <div>Loading metrics...</div>;
+  if (!metrics || !users) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -35,6 +45,26 @@ export function MetricsOverview() {
           onDateChange={(date) => date && setEndDate(date)}
           label="End Date"
         />
+        <Select
+          value={selectedUserId ? selectedUserId : "all"}
+          onValueChange={(value) =>
+            setSelectedUserId(
+              value === "all" ? undefined : (value as Id<"users">),
+            )
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select a user" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Users</SelectItem>
+            {users.map((user) => (
+              <SelectItem key={user._id} value={user._id}>
+                {user.name || user.email}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
