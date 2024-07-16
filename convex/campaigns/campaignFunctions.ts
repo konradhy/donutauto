@@ -9,7 +9,7 @@ import {
 import { ActivityTypes } from "../activities/activityHelpers";
 
 export const generateCampaign = mutation({
-  args: { customerId: v.id("customers") },
+  args: { customerId: v.id("customers"), title: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
@@ -50,6 +50,9 @@ export const generateCampaign = mutation({
           customerData,
           userId: user._id,
           organizationId: organization._id,
+          title:
+            args.title ||
+            `${customer.firstName} ${customer.lastName}'s general Package`,
         },
       );
 
@@ -75,75 +78,11 @@ export const generateCampaign = mutation({
   },
 });
 
-export const saveCampaignResults = internalMutation({
-  args: {
-    customerId: v.id("customers"),
-    userId: v.id("users"),
-    organizationId: v.id("organizations"),
-    customerName: v.string(),
-    results: v.array(
-      v.object({
-        platform: v.string(),
-        jobId: v.string(),
-        status: v.string(),
-        title: v.string(),
-        type: v.string(),
-      }),
-    ),
-  },
-  handler: async (ctx, args) => {
-    const { customerId, results } = args;
-
-    const campaignId = await ctx.db.insert("campaigns", {
-      customerId,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      status: "in_progress",
-      platforms: results.map((r) => r.platform),
-      userId: args.userId,
-      organizationId: args.organizationId,
-    });
-
-    await logInternalActivity(
-      ctx,
-      args.userId,
-      args.organizationId,
-      ActivityTypes.CAMPAIGN_CREATED,
-      {
-        campaignName: `${args.customerName}'s Full Package`,
-        itemId: campaignId,
-      },
-    );
-
-    // Save each job
-    for (const result of results) {
-      await ctx.db.insert("designs", {
-        campaignId,
-        customerId,
-        platform: result.platform,
-        jobId: result.jobId,
-        status: result.status,
-        updatedAt: Date.now(),
-        title: result.title,
-        userId: args.userId,
-        organizationId: args.organizationId,
-        type: result.type,
-      });
-    }
-
-    // Update customer with new campaign
-    const customer = await ctx.db.get(customerId);
-    const existingCampaigns = customer?.campaigns || [];
-    await ctx.db.patch(customerId, {
-      campaigns: [...existingCampaigns, campaignId],
-    });
-
-    return campaignId;
-  },
-});
-
 export const generateCampaigns = mutation({
-  args: { customerIds: v.array(v.id("customers")) },
+  args: {
+    customerIds: v.array(v.id("customers")),
+    title: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
@@ -200,6 +139,9 @@ export const generateCampaigns = mutation({
               customerData,
               userId: user._id,
               organizationId: organization._id,
+              title: args.title
+                ? `${args.title} - ${customer.firstName}`
+                : `${customer.firstName} ${customer.lastName}'s General Package`,
             },
           );
 
@@ -235,5 +177,74 @@ export const generateCampaigns = mutation({
       successCount,
       failureCount,
     };
+  },
+});
+
+export const saveCampaignResults = internalMutation({
+  args: {
+    customerId: v.id("customers"),
+    userId: v.id("users"),
+    organizationId: v.id("organizations"),
+    customerName: v.string(),
+    title: v.string(),
+    results: v.array(
+      v.object({
+        platform: v.string(),
+        jobId: v.string(),
+        status: v.string(),
+        title: v.string(),
+        type: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const { customerId, results } = args;
+
+    const campaignId = await ctx.db.insert("campaigns", {
+      customerId,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      status: "in_progress",
+      platforms: results.map((r) => r.platform),
+      userId: args.userId,
+      organizationId: args.organizationId,
+      title: args.title,
+    });
+
+    await logInternalActivity(
+      ctx,
+      args.userId,
+      args.organizationId,
+      ActivityTypes.CAMPAIGN_CREATED,
+      {
+        campaignName: `${args.customerName}'s Full Package`,
+        itemId: campaignId,
+      },
+    );
+
+    // Save each job
+    for (const result of results) {
+      await ctx.db.insert("designs", {
+        campaignId,
+        customerId,
+        platform: result.platform,
+        jobId: result.jobId,
+        status: result.status,
+        updatedAt: Date.now(),
+        title: result.title,
+        userId: args.userId,
+        organizationId: args.organizationId,
+        type: result.type,
+      });
+    }
+
+    // Update customer with new campaign
+    const customer = await ctx.db.get(customerId);
+    const existingCampaigns = customer?.campaigns || [];
+    await ctx.db.patch(customerId, {
+      campaigns: [...existingCampaigns, campaignId],
+    });
+
+    return campaignId;
   },
 });

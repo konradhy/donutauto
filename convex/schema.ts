@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import { error } from "console";
 
 export default defineSchema({
   users: defineTable({
@@ -74,6 +75,7 @@ export default defineSchema({
     updatedAt: v.number(),
     status: v.string(), // "in_progress", "completed", "failed"
     platforms: v.array(v.string()),
+    title: v.string(),
   })
     .index("by_organization", ["organizationId"])
     .index("by_customerId", ["customerId"]),
@@ -84,14 +86,16 @@ export default defineSchema({
     userId: v.id("users"),
     customerId: v.id("customers"),
     platform: v.string(),
-    designId: v.optional(v.string()),
+    canvaDesignId: v.optional(v.string()),
     title: v.optional(v.string()),
-    url: v.optional(v.string()),
+    editUrl: v.optional(v.string()),
+    viewUrl: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     status: v.string(), // "created", "failed"
     jobId: v.string(),
     updatedAt: v.number(),
     type: v.string(),
+    errorMessage: v.optional(v.string()),
   })
     .index("by_organization", ["organizationId"])
     .index("by_campaignId", ["campaignId"])

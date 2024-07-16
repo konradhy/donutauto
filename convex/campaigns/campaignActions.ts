@@ -15,6 +15,7 @@ export const generateCampaignAction = internalAction({
     customerId: v.id("customers"),
     userId: v.id("users"),
     organizationId: v.id("organizations"),
+    title: v.string(),
     customerData: v.object({
       firstName: v.string(),
       lastName: v.string(),
@@ -30,7 +31,6 @@ export const generateCampaignAction = internalAction({
     const { customerId, userId, customerData } = args;
     const results = [];
 
-    // Get Canva access token
     let canvaAccessToken;
     try {
       canvaAccessToken = await ctx.runAction(
@@ -68,7 +68,7 @@ export const generateCampaignAction = internalAction({
     };
 
     try {
-      // Generate email campaign
+      // EMAIL
       const emailTemplateId = getTemplateId("EMAIL");
       const emailTitle = generateTitle("email");
       const emailResult = await callCanvaAPI(
@@ -93,7 +93,7 @@ export const generateCampaignAction = internalAction({
         type: "general",
       });
 
-      // Generate Instagram campaign if handle exists
+      // IG
       if (customerData.instagramHandle) {
         const instagramTemplateId = getTemplateId("INSTAGRAM");
         const instagramTitle = generateTitle("instagram");
@@ -122,7 +122,7 @@ export const generateCampaignAction = internalAction({
         });
       }
 
-      // Generate Twitter campaign if handle exists
+      // TWITTER
       if (customerData.twitterHandle) {
         const twitterTemplateId = getTemplateId("TWITTER");
         const twitterTitle = generateTitle("twitter");
@@ -148,7 +148,7 @@ export const generateCampaignAction = internalAction({
         });
       }
 
-      // Generate TikTok campaign if handle exists
+      // TIKTOK
       if (customerData.tiktokHandle) {
         const tiktokTemplateId = getTemplateId("TIKTOK");
         const tiktokTitle = generateTitle("tiktok");
@@ -178,7 +178,6 @@ export const generateCampaignAction = internalAction({
       throw new Error("Failed to generate campaign. Please try again later.");
     }
 
-    // Save the results
     await ctx.runMutation(
       internal.campaigns.campaignFunctions.saveCampaignResults,
       {
@@ -187,6 +186,7 @@ export const generateCampaignAction = internalAction({
         userId,
         organizationId: args.organizationId,
         customerName: `${customerData.firstName} `,
+        title: args.title,
       },
     );
 
@@ -195,5 +195,61 @@ export const generateCampaignAction = internalAction({
     );
 
     return results;
+  },
+});
+
+export const checkAutofillJob = internalAction({
+  args: {
+    userId: v.id("users"),
+    designId: v.id("designs"),
+    jobId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { userId, designId, jobId } = args;
+    console.log(`Checking autofill job: ${jobId}`);
+
+    // Get Canva access token
+    const accessToken = await ctx.runAction(
+      internal.accessTokenHelperAction.getCanvaAccessToken,
+      { userId },
+    );
+
+    // Make API request to Canva
+    const response = await fetch(
+      `https://api.canva.com/rest/v1/autofills/${jobId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Canva API request failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.job.status === "success") {
+      // Update design in database
+      console.log(data.job.result);
+      await ctx.runMutation(
+        internal.campaigns.designs.updateDesignAfterAutofill,
+        {
+          designId,
+          canvaDesignId: data.job.result.design.id,
+          editUrl: data.job.result.design.url,
+          viewUrl: data.job.result.design.url.replace("/edit", "/view"),
+          thumbnailUrl: data.job.result.design.thumbnail.url,
+        },
+      );
+      return { status: "completed" };
+    } else if (data.job.status === "failed") {
+      return { status: "failed", error: data.job.error.message };
+    } else {
+      // Job still in progress
+      return { status: "in_progress" };
+    }
   },
 });

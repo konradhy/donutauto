@@ -13,6 +13,7 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import { WeeklyCampaignChart } from "@/components/dashboard/weekly-campaign-chart";
 import { DesignsByPlatformChart } from "@/components/dashboard/design-by-platform-chart";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import SkeletonLoader from "@/components/dashboard/skeleton-loader";
 
 export default function Dashboard() {
   const dateRange = useMemo(() => {
@@ -53,9 +54,7 @@ export default function Dashboard() {
       : [];
   }, [yearlyData]);
 
-  if (metrics === undefined || yearlyData === undefined) {
-    return <div>Loading...</div>;
-  }
+  const isLoading = metrics === undefined || yearlyData === undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 via-yellow-100 to-blue-100 dark:from-pink-900 dark:via-yellow-900 dark:to-blue-900">
@@ -81,50 +80,54 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {metrics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
-            <MetricCard
-              title="Total Customers"
-              value={metrics.customerCount.toString()}
-              icon="👥"
-            />
-            <MetricCard
-              title="Campaigns Created"
-              value={metrics.campaignCount.toString()}
-              icon="🎯"
-            />
-            <MetricCard
-              title="Emails Created"
-              value={metrics.byPlatform.email.toString()}
-              icon="📧"
-            />
-            <MetricCard
-              title="Designs Created"
-              value={metrics.totalDesigns.toString()}
-              icon="📱"
-            />
-            <MetricCard
-              title="Coupons Created"
-              value={metrics.byType.coupon.toString()}
-              icon="🎟️"
-            />
-            <MetricCard
-              title="Total Designs"
-              value={metrics.totalDesigns.toString()}
-              icon="💰"
-            />
-          </div>
+        {isLoading ? (
+          <SkeletonLoader />
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+              <MetricCard
+                title="Total Customers"
+                value={metrics.customerCount.toString()}
+                icon="👥"
+              />
+              <MetricCard
+                title="Campaigns Created"
+                value={metrics.campaignCount.toString()}
+                icon="🎯"
+              />
+              <MetricCard
+                title="Emails Created"
+                value={metrics.byPlatform.email.toString()}
+                icon="📧"
+              />
+              <MetricCard
+                title="Designs Created"
+                value={metrics.totalDesigns.toString()}
+                icon="📱"
+              />
+              <MetricCard
+                title="Coupons Created"
+                value={metrics.byType.coupon.toString()}
+                icon="🎟️"
+              />
+              <MetricCard
+                title="Total Designs"
+                value={metrics.totalDesigns.toString()}
+                icon="💰"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <WeeklyCampaignChart data={weeklyData} />
+              <DesignsByPlatformChart data={designsByPlatform} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <QuickActions />
+              <RecentActivityCard />
+            </div>
+          </>
         )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <WeeklyCampaignChart data={weeklyData} />
-          <DesignsByPlatformChart data={designsByPlatform} />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <QuickActions />
-          <RecentActivityCard />
-        </div>
       </main>
     </div>
   );
