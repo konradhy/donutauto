@@ -99,8 +99,11 @@ export default defineSchema({
   })
     .index("by_organization", ["organizationId"])
     .index("by_campaignId", ["campaignId"])
-    .index("by_userId", ["userId"]),
-
+    .index("by_userId", ["userId"])
+    .searchIndex("search_designs", {
+      searchField: "title",
+      filterFields: ["organizationId"],
+    }),
   brandTemplateSettings: defineTable({
     organizationId: v.id("organizations"),
     userId: v.id("users"),

@@ -7,6 +7,7 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useState } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const ImageWithFallback = ({
   src,
@@ -40,9 +41,10 @@ type GroupedDesigns = {
 };
 
 export default function DesignGallery() {
+  const [searchTerm, setSearchTerm] = useState("");
   const { results, status, loadMore } = usePaginatedQuery(
     api.campaigns.designs.getPaginatedDesignsWithCampaigns,
-    {},
+    { searchTerm },
     { initialNumItems: 20 },
   );
 
@@ -61,6 +63,13 @@ export default function DesignGallery() {
   return (
     <div className="container mx-auto px-4">
       <h1 className="text-2xl font-bold my-4">Design Gallery</h1>
+      <Input
+        type="text"
+        placeholder="Search designs..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-4"
+      />
       {Object.entries(designsByCampaign).map(
         ([campaignId, { campaign, designs }]) => (
           <div key={campaignId} className="mb-8">

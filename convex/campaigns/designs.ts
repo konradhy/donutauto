@@ -96,12 +96,35 @@ export const getAllDesignsWithCampaigns = query({
 });
 
 export const getPaginatedDesignsWithCampaigns = query({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {
+    paginationOpts: paginationOptsValidator,
+    searchTerm: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    const paginatedDesigns = await ctx.db
-      .query("designs")
-      .order("desc")
-      .paginate(args.paginationOpts);
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+
+    let designsQuery;
+
+    if (args.searchTerm) {
+      designsQuery = ctx.db
+        .query("designs")
+        .withSearchIndex("search_designs", (q) =>
+          q
+            .search("title", args.searchTerm || "")
+            .eq("organizationId", organization._id),
+        );
+    } else {
+      designsQuery = ctx.db
+        .query("designs")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", organization._id),
+        );
+    }
+
+    const paginatedDesigns = await designsQuery.paginate(args.paginationOpts);
 
     const designsWithCampaigns = await Promise.all(
       paginatedDesigns.page.map(async (design) => {
