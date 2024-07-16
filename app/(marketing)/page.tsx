@@ -1,10 +1,21 @@
 "use client";
 import brandConfig from "@/lib/brandConfig";
-import { SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { SignInButton, SignUpButton, useAuth } from "@clerk/clerk-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 via-yellow-100 to-blue-100">
       <header className="p-6 flex justify-between items-center">
@@ -34,7 +45,7 @@ export default function Home() {
 
       <main className="container mx-auto px-6 py-12 flex flex-col items-center">
         <h1 className="text-6xl font-extrabold text-center text-gray-800 mb-6">
-          Sweeten Your Design Workflow with ${brandConfig.name}
+          Sweeten Your Design Workflow with {brandConfig.name}
         </h1>
         <p className="text-2xl text-center text-gray-700 mb-12 max-w-3xl">
           Sprinkle some AI magic on your Canva designs, automate your content
@@ -44,12 +55,12 @@ export default function Home() {
         <div className="flex space-x-4">
           <SignInButton mode="modal" afterSignInUrl="/dashboard">
             <button className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105">
-              Bite In
+              Log In
             </button>
           </SignInButton>
           <SignUpButton mode="modal" afterSignUpUrl="/dashboard">
             <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105">
-              Get Glazed
+              Create Account
             </button>
           </SignUpButton>
         </div>

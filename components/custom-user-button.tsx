@@ -14,13 +14,12 @@ import { Button } from "@/components/ui/button";
 
 export const CustomUserButton: React.FC = () => {
   const { user } = useUser();
-  const { signOut } = useClerk();
+  const { signOut, openUserProfile } = useClerk();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
       await revoke();
-
       await signOut();
     } catch (error: any) {
       console.error("Error during sign out:", error);
@@ -57,7 +56,7 @@ export const CustomUserButton: React.FC = () => {
             variant="outline"
             className="w-full"
             onClick={() => {
-              // Navigate to profile page or open profile modal
+              openUserProfile();
               setIsOpen(false);
             }}
           >

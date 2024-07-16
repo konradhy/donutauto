@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Stars, Sun } from "lucide-react";
-import { useTheme } from "next-themes"; 
+import { useTheme } from "next-themes";
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [isClient, setIsClient] = useState(false);
@@ -9,20 +9,19 @@ export function ThemeToggle() {
     setIsClient(true);
   }, []);
 
-
   if (!isClient) return null;
 
   return (
     <>
       {theme === "light" ? (
         <Sun
-          className="h-[1.4rem] w-[1.4rem] transition-all m-1"
+          className="h-[1.4rem] w-[1.4rem] transition-all m-4"
           onClick={() => setTheme("dark")}
           role="button"
         />
       ) : (
         <Stars
-          className="h-[1.4rem] w-[1.4rem] transition-all m-1"
+          className="h-[1.4rem] w-[1.4rem] transition-all  text-yellow-100  m-4 "
           onClick={() => setTheme("light")}
           role="button"
         />

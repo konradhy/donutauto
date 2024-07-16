@@ -1,31 +1,28 @@
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation } from "../_generated/server";
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
-import { getCurrentUserAndOrganization } from "./accessControlHelpers";
+import { internal } from "../_generated/api";
+import { getCurrentUserAndOrganization } from "../accessControlHelpers";
 import {
   logActivityHelper,
   logInternalActivity,
-} from "./activities/activityHelpers";
-import { ActivityTypes } from "./activities/activityHelpers";
+} from "../activities/activityHelpers";
+import { ActivityTypes } from "../activities/activityHelpers";
 
 export const generateCampaign = mutation({
   args: { customerId: v.id("customers") },
   handler: async (ctx, args) => {
-    // Check if the user is authenticated
-
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
     if (!user || !user.canvaAccessToken) {
       throw new Error("User not found or Canva not connected");
     }
 
-    // Fetch the customer data
     const customer = await ctx.db.get(args.customerId);
     if (!customer) {
       throw new Error("Customer not found");
     }
 
-    //adjust whenever a new field is added to customer
+    //remember to adjust whenever a new field is added to customer
     const {
       _id,
       _creationTime,
@@ -47,7 +44,7 @@ export const generateCampaign = mutation({
     try {
       await ctx.scheduler.runAfter(
         0,
-        internal.campaignActions.generateCampaignAction,
+        internal.campaigns.campaignActions.generateCampaignAction,
         {
           customerId: args.customerId,
           customerData,
@@ -97,7 +94,6 @@ export const saveCampaignResults = internalMutation({
   handler: async (ctx, args) => {
     const { customerId, results } = args;
 
-    // Create a new campaign
     const campaignId = await ctx.db.insert("campaigns", {
       customerId,
       createdAt: Date.now(),
@@ -152,7 +148,9 @@ export const generateCampaigns = mutation({
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
     if (!user || !user.canvaAccessToken) {
-      throw new Error("Canva not connected");
+      throw new Error(
+        "Canva not connected. Try disconnecting from Canva and reconnecting from the dashboard.",
+      );
     }
 
     const batchSize = 10;
@@ -195,8 +193,8 @@ export const generateCampaigns = mutation({
 
           // Schedule the campaign generation action
           await ctx.scheduler.runAfter(
-            0,
-            internal.campaignActions.generateCampaignAction,
+            5000, // 5 seconds to help with rate limiting
+            internal.campaigns.campaignActions.generateCampaignAction,
             {
               customerId,
               customerData,
@@ -209,7 +207,7 @@ export const generateCampaigns = mutation({
         } catch (error) {
           failureCount++;
           console.error(
-            `Failed to generate campaign for customer ${customerId}:`,
+            `Failed to generate campaign for customer ${customerId}: ${(error as Error).message}`,
             error,
           );
         }

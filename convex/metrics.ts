@@ -2,7 +2,7 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserAndOrganization } from "./accessControlHelpers";
 
-const platforms = ["twitter", "instagram", "email"] as const;
+const platforms = ["twitter", "instagram", "email", "tiktok"] as const;
 type Platform = (typeof platforms)[number];
 
 const designTypes = ["general", "custom", "quiz", "joke", "coupon"] as const;
@@ -100,5 +100,58 @@ export const getMetrics = query({
       campaignCount: campaigns.length,
       ...designMetrics,
     };
+  },
+});
+
+export const getYearlyDesignData = query({
+  args: {
+    year: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const { year } = args;
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+    const organizationId = organization._id;
+
+    const startOfYear = new Date(year, 0, 1).getTime();
+    const endOfYear = new Date(year + 1, 0, 1).getTime() - 1;
+
+    const designs = await ctx.db
+      .query("designs")
+      .withIndex("by_organization", (q) =>
+        q.eq("organizationId", organizationId),
+      )
+      .filter((q) =>
+        q.and(
+          q.gte(q.field("updatedAt"), startOfYear),
+          q.lte(q.field("updatedAt"), endOfYear),
+        ),
+      )
+      .collect();
+
+    const monthlyData = Array(12)
+      .fill(0)
+      .map((_, index) => ({
+        month: new Date(year, index).toLocaleString("default", {
+          month: "long",
+        }),
+        email: 0,
+        instagram: 0,
+        twitter: 0,
+        tiktok: 0,
+      }));
+
+    designs.forEach((design) => {
+      const monthIndex = new Date(design.updatedAt).getMonth();
+      const platform = design.platform as
+        | "email"
+        | "instagram"
+        | "twitter"
+        | "tiktok";
+      if (monthlyData[monthIndex][platform] !== undefined) {
+        monthlyData[monthIndex][platform]++;
+      }
+    });
+
+    return monthlyData;
   },
 });

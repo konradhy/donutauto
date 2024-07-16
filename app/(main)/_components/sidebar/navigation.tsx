@@ -13,8 +13,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Image from "next/image";
 import brandConfig from "@/lib/brandConfig";
+import { useTheme } from "next-themes";
 
 export const Navigation = () => {
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -24,6 +26,10 @@ export const Navigation = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
   const [isIconised, setIsIconised] = useState(false);
+
+  const handleThemeToggle = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   useEffect(() => {
     if (isMobile) {
@@ -122,7 +128,7 @@ export const Navigation = () => {
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar h-screen overflow-y-auto relative flex w-60 flex-col z-50 bg-pink-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700",
+          "group/sidebar min-h-screen overflow-y-auto relative flex w-60 flex-col z-50 bg-pink-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "w-0",
         )}
@@ -153,16 +159,13 @@ export const Navigation = () => {
               <Nav isCollapsed={isIconised} links={topLinks} />
               <Separator className="my-4" />
               <Nav isCollapsed={isIconised} links={bottomLinks} />
+              <ThemeToggle />
             </TooltipProvider>
           </nav>
-
-          <div className="p-4 mt-auto">
-            <ThemeToggle />
-          </div>
         </div>
 
         <div
-          className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-screen w-1 right-0 top-0"
+          className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute min-h-screen w-1 right-0 top-0"
           onMouseDown={handleMouseDown}
           onClick={resetWidth}
         >

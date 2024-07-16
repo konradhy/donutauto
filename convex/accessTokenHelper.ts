@@ -1,3 +1,5 @@
+//TODO: Something is broken. When the token naturally expires and the user tries to make an api call. It doesn't refresh.
+
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import {
@@ -7,7 +9,7 @@ import {
   MutationCtx,
 } from "./_generated/server";
 
-// Internal query to get and check token information
+// Internal query to get and check token info
 export const getCanvaTokenInfo = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx: QueryCtx, args: { userId: Id<"users"> }) => {
@@ -63,7 +65,7 @@ export const updateCanvaTokens = internalMutation({
   },
 });
 
-// Public mutation to initiate the token refresh process (if needed)
+//  mutation that will initiate the token refresh process
 export const ensureCanvaAccessToken = internalMutation({
   args: { userId: v.id("users") },
   handler: async (ctx: MutationCtx, args: { userId: Id<"users"> }) => {

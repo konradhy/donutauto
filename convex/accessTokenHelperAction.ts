@@ -20,7 +20,7 @@ function customBase64Encode(str: string): string {
       base64chars.charAt(c & 63);
   } while (i < str.length);
 
-  // Handle padding
+  //  padding
   const padding = str.length % 3;
   if (padding) {
     result = result.slice(0, -padding + 3) + "=".repeat(padding);

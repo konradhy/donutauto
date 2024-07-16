@@ -1,7 +1,7 @@
-import { internalAction } from "./_generated/server";
+import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
-import { callCanvaAPI } from "./canvaApi";
+import { internal } from "../_generated/api";
+import { callCanvaAPI } from "../canvaApi";
 
 export const DEFAULT_TEMPLATE_IDS = {
   EMAIL: "DAGKfYlVZgQ",
@@ -179,13 +179,16 @@ export const generateCampaignAction = internalAction({
     }
 
     // Save the results
-    await ctx.runMutation(internal.campaigns.saveCampaignResults, {
-      customerId,
-      results,
-      userId,
-      organizationId: args.organizationId,
-      customerName: `${customerData.firstName} `,
-    });
+    await ctx.runMutation(
+      internal.campaigns.campaignFunctions.saveCampaignResults,
+      {
+        customerId,
+        results,
+        userId,
+        organizationId: args.organizationId,
+        customerName: `${customerData.firstName} `,
+      },
+    );
 
     console.log(
       `Campaign generation initiated for customer: ${customerData.firstName} ${customerData.lastName}`,

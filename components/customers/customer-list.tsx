@@ -23,10 +23,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import CSVBulkCustomerUploader from "./csv-upload";
 
 export function CustomerList() {
   const deleteCustomer = useMutation(api.customers.deleteCustomer);
-  const generateCampaigns = useMutation(api.campaigns.generateCampaigns);
+  const generateCampaigns = useMutation(
+    api.campaigns.campaignFunctions.generateCampaigns,
+  );
   const [selectedCustomers, setSelectedCustomers] = useState<Id<"customers">[]>(
     [],
   );
@@ -74,9 +77,13 @@ export function CustomerList() {
           style: { background: "#10B981", color: "white" },
         });
       } catch (error) {
-        toast.error("Failed to generate campaign. Please try again.", {
-          style: { background: "#EF4444", color: "white" },
-        });
+        console.log(error);
+        toast.error(
+          `Failed to generate campaign. Please try again.${(error as Error).message}`,
+          {
+            style: { background: "#EF4444", color: "white" },
+          },
+        );
       }
     },
     [generateCampaigns],
@@ -100,9 +107,12 @@ export function CustomerList() {
       );
       setSelectedCustomers([]);
     } catch (error) {
-      toast.error("Failed to generate campaigns. Please try again.", {
-        style: { background: "#EF4444", color: "white" },
-      });
+      toast.error(
+        `Failed to generate campaigns. Please try again: ${(error as Error).message}`,
+        {
+          style: { background: "#EF4444", color: "white" },
+        },
+      );
     }
   }, [generateCampaigns, selectedCustomers]);
 
@@ -115,7 +125,7 @@ export function CustomerList() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 to-indigo-100 dark:from-pink-950 dark:to-indigo-950 p-8">
+    <div className=" ">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
         <div className="p-8">
           <h2 className="text-4xl font-extrabold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-indigo-600 dark:from-pink-400 dark:to-indigo-500">
