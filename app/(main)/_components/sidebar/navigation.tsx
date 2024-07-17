@@ -147,7 +147,11 @@ export const Navigation = () => {
 
           <div className="px-4 py-6">
             <Image
-              src="/donut-logo.svg"
+              src={
+                theme === "dark"
+                  ? "/donut-logo-dark.png"
+                  : "/donut-logo-light.png"
+              }
               alt={`${brandConfig.name} Logo`}
               width={40}
               height={40}

@@ -4,7 +4,7 @@ import { api } from "@/convex/_generated/api";
 import Image from "next/image";
 import Link from "next/link";
 import { Doc, Id } from "@/convex/_generated/dataModel";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,12 +41,34 @@ type GroupedDesigns = {
 };
 
 export default function DesignGallery() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
   const { results, status, loadMore } = usePaginatedQuery(
     api.campaigns.designs.getPaginatedDesignsWithCampaigns,
-    { searchTerm },
+    { searchTerm: debouncedSearchTerm },
     { initialNumItems: 20 },
   );
+
+  const debounce = useCallback(
+    (func: (...args: any[]) => void, delay: number) => {
+      let timeoutId: NodeJS.Timeout;
+      return (...args: any[]) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func(...args), delay);
+      };
+    },
+    [],
+  );
+
+  const debouncedSetSearchTerm = useCallback(
+    debounce((value: string) => setDebouncedSearchTerm(value), 300),
+    [],
+  );
+
+  useEffect(() => {
+    debouncedSetSearchTerm(inputValue);
+  }, [inputValue, debouncedSetSearchTerm]);
 
   const designsByCampaign = (results || []).reduce<GroupedDesigns>(
     (acc, item) => {
@@ -66,8 +88,8 @@ export default function DesignGallery() {
       <Input
         type="text"
         placeholder="Search designs..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         className="mb-4"
       />
       {Object.entries(designsByCampaign).map(

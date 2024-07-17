@@ -21,7 +21,7 @@ export default function Home() {
       <header className="p-6 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <Image
-            src="/donut-logo.svg"
+            src="/donut-logo-light.png"
             alt={`${brandConfig.name} Logo`}
             width={50}
             height={50}

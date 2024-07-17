@@ -14,8 +14,10 @@ import { WeeklyCampaignChart } from "@/components/dashboard/weekly-campaign-char
 import { DesignsByPlatformChart } from "@/components/dashboard/design-by-platform-chart";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import SkeletonLoader from "@/components/dashboard/skeleton-loader";
+import { useTheme } from "next-themes";
 
 export default function Dashboard() {
+  const { theme } = useTheme();
   const dateRange = useMemo(() => {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -62,7 +64,11 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Image
-              src="/donut-logo.svg"
+              src={
+                theme === "dark"
+                  ? "/donut-logo-dark.png"
+                  : "/donut-logo-light.png"
+              }
               alt={`${brandConfig.name} Logo`}
               width={40}
               height={40}
