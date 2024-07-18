@@ -1,37 +1,14 @@
 "use client";
 import { usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import Image from "next/image";
-import Link from "next/link";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 import { useState, useCallback, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const ImageWithFallback = ({
-  src,
-  alt,
-  ...props
-}: {
-  src: string;
-  alt: string;
-  [key: string]: any;
-}) => {
-  const [error, setError] = useState(false);
-
-  return (
-    <Image
-      src={error ? "/placeholder.jpg" : src}
-      alt={alt}
-      {...props}
-      onError={() => {
-        console.error(`Failed to load image: ${src}`);
-        setError(true);
-      }}
-    />
-  );
-};
+import DesignGrid from "@/components/designs/design-grid";
+import { DesignGallerySkeleton } from "@/components/designs/design-grid-skeleton";
 
 type GroupedDesigns = {
   [key: string]: {
@@ -70,6 +47,13 @@ export default function DesignGallery() {
     debouncedSetSearchTerm(inputValue);
   }, [inputValue, debouncedSetSearchTerm]);
 
+  if (
+    status === "LoadingFirstPage" ||
+    (status === "LoadingMore" && results.length === 0)
+  ) {
+    return <DesignGallerySkeleton />;
+  }
+
   const designsByCampaign = (results || []).reduce<GroupedDesigns>(
     (acc, item) => {
       const campaignId = item.campaign ? item.campaign._id : "unknown";
@@ -83,62 +67,62 @@ export default function DesignGallery() {
   );
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-2xl font-bold my-4">Design Gallery</h1>
-      <Input
-        type="text"
-        placeholder="Search designs..."
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        className="mb-4"
-      />
-      {Object.entries(designsByCampaign).map(
-        ([campaignId, { campaign, designs }]) => (
-          <div key={campaignId} className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">
-              Campaign: {campaign ? campaign.title : "Unknown Campaign"}
-            </h2>
-            <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-              <div className="flex w-max space-x-4 p-4">
-                {designs.map((design) => (
-                  <Link
-                    key={design._id}
-                    href={`/designs/${design._id}`}
-                    className="shrink-0"
-                  >
-                    <div className="w-[250px] border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                      <ImageWithFallback
-                        src={design.thumbnailUrl || "/placeholder.jpg"}
-                        alt={`Design ${design._id}`}
-                        width={250}
-                        height={200}
-                        className="object-cover w-full h-[200px]"
-                      />
-                      <div className="p-2">
-                        <p className="text-sm font-semibold">
-                          {design.platform}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(design._creationTime).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </div>
-        ),
-      )}
-      {status === "CanLoadMore" && (
-        <Button onClick={() => loadMore(20)} className="mt-4">
-          Load More
-        </Button>
-      )}
-      {status === "Exhausted" && (
-        <p className="mt-4">No more designs to load.</p>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-pink-50 dark:from-gray-900 dark:to-purple-900 p-8">
+      <div className="container mx-auto space-y-8">
+        <Card className="bg-transparent dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+              Design Gallery
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Input
+              type="text"
+              placeholder="Search designs..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="mb-4"
+            />
+          </CardContent>
+        </Card>
+
+        {Object.entries(designsByCampaign).map(
+          ([campaignId, { campaign, designs }]) => (
+            <Card
+              key={campaignId}
+              className="bg-transparent dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300"
+            >
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                  Campaign: {campaign ? campaign.title : "Unknown Campaign"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                  <div className="flex w-max space-x-4 p-4">
+                    <DesignGrid designs={designs} />
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          ),
+        )}
+
+        {status === "CanLoadMore" && (
+          <Button
+            onClick={() => loadMore(20)}
+            className="mt-4 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
+          >
+            Load More
+          </Button>
+        )}
+        {status === "Exhausted" && (
+          <p className="mt-4 text-gray-700 dark:text-gray-300">
+            No more designs to load.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

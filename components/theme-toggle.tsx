@@ -15,13 +15,13 @@ export function ThemeToggle() {
     <>
       {theme === "light" ? (
         <Sun
-          className="h-[1.4rem] w-[1.4rem] transition-all m-4"
+          className="h-[1.4rem] w-[1.4rem] transition-all m-4 text-pink-600"
           onClick={() => setTheme("dark")}
           role="button"
         />
       ) : (
         <Stars
-          className="h-[1.4rem] w-[1.4rem] transition-all  text-yellow-100  m-4 "
+          className="h-[1.4rem] w-[1.4rem] transition-all  text-[#ff6069] m-4 "
           onClick={() => setTheme("light")}
           role="button"
         />

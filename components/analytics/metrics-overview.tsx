@@ -40,6 +40,7 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
+import { AnalyticsSkeleton } from "./analytics-skeleton";
 
 const chartConfig: ChartConfig = {
   email: {
@@ -80,9 +81,8 @@ export function MetricsOverview() {
   });
 
   if (!metrics || !users || !yearlyData) {
-    return <div>Loading...</div>;
+    return <AnalyticsSkeleton />;
   }
-
   const platformData = Object.entries(metrics.byPlatform).map(
     ([name, value]) => ({ name, value }),
   );
