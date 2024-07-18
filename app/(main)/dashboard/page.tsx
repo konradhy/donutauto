@@ -13,7 +13,7 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import { WeeklyCampaignChart } from "@/components/dashboard/weekly-campaign-chart";
 import { DesignsByPlatformChart } from "@/components/dashboard/design-by-platform-chart";
 import { QuickActions } from "@/components/dashboard/quick-actions";
-import SkeletonLoader from "@/components/dashboard/skeleton-loader";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 import { useTheme } from "next-themes";
 
 export default function Dashboard() {
@@ -58,6 +58,7 @@ export default function Dashboard() {
 
   const isLoading = metrics === undefined || yearlyData === undefined;
 
+  const isFake = true;
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 via-yellow-100 to-blue-100 dark:from-pink-900 dark:via-yellow-900 dark:to-blue-900">
       <header className="sticky top-0 z-10 bg-pink-50 dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm shadow-sm">
@@ -87,7 +88,7 @@ export default function Dashboard() {
 
       <main className="container mx-auto px-4 py-8">
         {isLoading ? (
-          <SkeletonLoader />
+          <DashboardSkeleton />
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">

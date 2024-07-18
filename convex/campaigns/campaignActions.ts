@@ -94,7 +94,11 @@ export const generateCampaignAction = internalAction({
       });
 
       // IG
+
       if (customerData.instagramHandle) {
+        const firstPreference = customerData.preferences?.[0];
+        console.log("First preference:", firstPreference);
+
         const instagramTemplateId = getTemplateId("INSTAGRAM");
         const instagramTitle = generateTitle("instagram");
         const instagramResult = await callCanvaAPI(
@@ -107,7 +111,7 @@ export const generateCampaignAction = internalAction({
             },
             preferences: {
               type: "text",
-              text: customerData.preferences?.join(", ") || "",
+              text: `made for all my ${firstPreference || "vanilla"} lovers`,
             },
           },
           canvaAccessToken,

@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import CSVBulkCustomerUploader from "./csv-upload";
+import { CustomerListSkeleton } from "./customer-list-skeleton";
 
 export function CustomerList() {
   const deleteCustomer = useMutation(api.customers.deleteCustomer);
@@ -123,6 +123,10 @@ export function CustomerList() {
         : [...prev, customerId],
     );
   };
+
+  if (status === "LoadingFirstPage") {
+    return <CustomerListSkeleton />;
+  }
 
   return (
     <div className=" ">

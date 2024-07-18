@@ -28,7 +28,9 @@ export default function CustomerEditPage() {
 
   const customer = useQuery(api.customers.getCustomer, { id: customerId });
   const updateField = useMutation(api.customers.updateCustomerField);
-  const generateCampaign = useMutation(api.campaigns.generateCampaign);
+  const generateCampaign = useMutation(
+    api.campaigns.campaignFunctions.generateCampaign,
+  );
 
   const [formData, setFormData] = useState({
     firstName: "",

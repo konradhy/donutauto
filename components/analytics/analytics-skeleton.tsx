@@ -14,8 +14,8 @@ export function AnalyticsSkeleton() {
     <div className="space-y-4 animate-pulse">
       <div className="flex justify-between items-center">
         <div className="flex space-x-4">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-9 w-60" />
+          <Skeleton className="h-9 w-60" />
         </div>
         <Skeleton className="h-10 w-[180px]" />
       </div>
@@ -25,7 +25,7 @@ export function AnalyticsSkeleton() {
           <Card key={i}>
             <CardHeader>
               <CardTitle>
-                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-4 w-24" />
               </CardTitle>
             </CardHeader>
             <CardContent>
