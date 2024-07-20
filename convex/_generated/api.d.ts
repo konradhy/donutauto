@@ -19,6 +19,7 @@ import type * as accessTokenHelper from "../accessTokenHelper.js";
 import type * as accessTokenHelperAction from "../accessTokenHelperAction.js";
 import type * as activities_activities from "../activities/activities.js";
 import type * as activities_activityHelpers from "../activities/activityHelpers.js";
+import type * as aiGeneration_text from "../aiGeneration/text.js";
 import type * as brandTemplateSettings from "../brandTemplateSettings.js";
 import type * as campaigns_autofillJobs from "../campaigns/autofillJobs.js";
 import type * as campaigns_campaignActions from "../campaigns/campaignActions.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   accessTokenHelperAction: typeof accessTokenHelperAction;
   "activities/activities": typeof activities_activities;
   "activities/activityHelpers": typeof activities_activityHelpers;
+  "aiGeneration/text": typeof aiGeneration_text;
   brandTemplateSettings: typeof brandTemplateSettings;
   "campaigns/autofillJobs": typeof campaigns_autofillJobs;
   "campaigns/campaignActions": typeof campaigns_campaignActions;

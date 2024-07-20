@@ -114,7 +114,8 @@ export const getPaginatedDesignsWithCampaigns = query({
         .withSearchIndex("search_designs", (q) =>
           q
             .search("title", args.searchTerm || "")
-            .eq("organizationId", organization._id),
+            .eq("organizationId", organization._id)
+            ,
         );
     } else {
       designsQuery = ctx.db

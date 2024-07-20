@@ -1,6 +1,5 @@
-import { internal } from "./_generated/api";
 
-export async function callCanvaAPI(
+export async function callCanvaAutofillAPI(
   templateId: string,
   data: any,
   accessToken: string,

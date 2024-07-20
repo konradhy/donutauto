@@ -58,7 +58,7 @@ export default function Dashboard() {
 
   const isLoading = metrics === undefined || yearlyData === undefined;
 
-  const isFake = true;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 via-yellow-100 to-blue-100 dark:from-pink-900 dark:via-yellow-900 dark:to-blue-900">
       <header className="sticky top-0 z-10 bg-pink-50 dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm shadow-sm">

@@ -1,7 +1,7 @@
 import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import { callCanvaAPI } from "../canvaApi";
+import { callCanvaAutofillAPI } from "../canvaApi";
 
 export const DEFAULT_TEMPLATE_IDS = {
   EMAIL: "DAGKfYlVZgQ",
@@ -25,6 +25,7 @@ export const generateCampaignAction = internalAction({
       instagramHandle: v.optional(v.string()),
       twitterHandle: v.optional(v.string()),
       tiktokHandle: v.optional(v.string()),
+      location: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args) => {
@@ -71,7 +72,7 @@ export const generateCampaignAction = internalAction({
       // EMAIL
       const emailTemplateId = getTemplateId("EMAIL");
       const emailTitle = generateTitle("email");
-      const emailResult = await callCanvaAPI(
+      const emailResult = await callCanvaAutofillAPI(
         emailTemplateId as string,
         {
           firstName: { type: "text", text: customerData.firstName },
@@ -97,11 +98,10 @@ export const generateCampaignAction = internalAction({
 
       if (customerData.instagramHandle) {
         const firstPreference = customerData.preferences?.[0];
-        console.log("First preference:", firstPreference);
 
         const instagramTemplateId = getTemplateId("INSTAGRAM");
         const instagramTitle = generateTitle("instagram");
-        const instagramResult = await callCanvaAPI(
+        const instagramResult = await callCanvaAutofillAPI(
           instagramTemplateId as string,
           {
             firstName: { type: "text", text: customerData.firstName },
@@ -130,7 +130,7 @@ export const generateCampaignAction = internalAction({
       if (customerData.twitterHandle) {
         const twitterTemplateId = getTemplateId("TWITTER");
         const twitterTitle = generateTitle("twitter");
-        const twitterResult = await callCanvaAPI(
+        const twitterResult = await callCanvaAutofillAPI(
           twitterTemplateId as string,
           {
             firstName: { type: "text", text: customerData.firstName },
@@ -156,25 +156,63 @@ export const generateCampaignAction = internalAction({
       if (customerData.tiktokHandle) {
         const tiktokTemplateId = getTemplateId("TIKTOK");
         const tiktokTitle = generateTitle("tiktok");
-        const tiktokResult = await callCanvaAPI(
+
+        //seemed to work fine. Issues however with the actual content and the fact that the input is static
+        const quizContent = await ctx.runAction(
+          internal.aiGeneration.text.generateQuizContent,
+          {
+            brandName: "AutoDonut", // Replace with actual brand name
+            brandDescription:
+              "DonutAuto is a cutting-edge automated marketing platform specializing in the food and beverage        industry, with a particular focus on donut shops and bakeries. We combine AI-driven content generation with Canva's design capabilities to create personalized, mouth-watering marketing campaigns that help small to medium-sized donut businesses increase their online presence and customer engagement. Our platform streamlines the creation of eye-catching social media posts, email campaigns, and digital ads, allowing donut shop owners to focus on what they do best - creating delicious treats. With DonutAuto, every sprinkle, glaze, and filling gets the attention it deserves in the digital world", // Replace with actual description
+            preferences: customerData.preferences || [],
+            location: customerData.location || "",
+            firstName: customerData.firstName,
+          },
+        );
+
+        const tiktokResult = await callCanvaAutofillAPI(
           tiktokTemplateId as string,
           {
-            firstName: { type: "text", text: customerData.firstName },
-            tiktokHandle: { type: "text", text: customerData.tiktokHandle },
+            firstName: {
+              type: "text",
+              text: `Hey ${customerData.firstName} if you get this question right you'll get:`,
+            },
+            handle: { type: "text", text: customerData.tiktokHandle },
             preferences: {
               type: "text",
-              text: customerData.preferences?.join(", ") || "",
+              text: customerData.preferences?.[0] || "",
+            },
+            deal: {
+              type: "text",
+              text: quizContent.deal,
+            },
+            question: {
+              type: "text",
+              text: quizContent.question,
+            },
+            answerOne: {
+              type: "text",
+              text: quizContent.answerOne,
+            },
+            answerTwo: {
+              type: "text",
+              text: quizContent.answerTwo,
+            },
+            answerThree: {
+              type: "text",
+              text: quizContent.answerThree,
             },
           },
           canvaAccessToken,
           tiktokTitle,
         );
+
         results.push({
           platform: "tiktok",
           jobId: tiktokResult.job.id,
           status: tiktokResult.job.status,
           title: tiktokTitle,
-          type: "general",
+          type: "quiz",
         });
       }
     } catch (error) {
