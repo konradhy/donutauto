@@ -1,14 +1,17 @@
 import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import { callCanvaAutofillAPI } from "../canvaApi";
+import { Id } from "../_generated/dataModel";
 
-export const DEFAULT_TEMPLATE_IDS = {
-  EMAIL: "DAGKfYlVZgQ",
-  INSTAGRAM: "DAGKfYlVZgQ",
-  TWITTER: "DAGKfYlVZgQ",
-  TIKTOK: "DAGKfYlVZgQ",
-};
+import { ContentType, Platform } from "./campaignActionHelpers";
+import { initializeCanvaConnection } from "./campaignActionHelpers";
+import { getTemplateSettings } from "./campaignActionHelpers";
+import { getTemplateId } from "./campaignActionHelpers";
+import { generateTitle } from "./campaignActionHelpers";
+import { generateContentForPlatform } from "./campaignActionHelpers";
+import { callCanvaAPI } from "./campaignActionHelpers";
+import { isValidPlatform } from "./campaignActionHelpers";
+import { formatContent } from "./campaignActionHelpers";
 
 export const generateCampaignAction = internalAction({
   args: {
@@ -27,209 +30,88 @@ export const generateCampaignAction = internalAction({
       tiktokHandle: v.optional(v.string()),
       location: v.optional(v.string()),
     }),
+    contentTypes: v.array(v.string()),
+    platforms: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const { customerId, userId, customerData } = args;
+    const {
+      customerId,
+      userId,
+      customerData,
+      contentTypes,
+      platforms,
+      organizationId,
+    } = args;
     const results = [];
 
-    let canvaAccessToken;
-    try {
-      canvaAccessToken = await ctx.runAction(
-        internal.accessTokenHelperAction.getCanvaAccessToken,
-        { userId },
-      );
-    } catch (error) {
-      console.error("Failed to get Canva access token:", error);
-      throw new Error(
-        "Unable to access Canva. Please ensure your Canva account is connected.",
-      );
+    const canvaAccessToken = await initializeCanvaConnection(ctx, userId);
+
+    const templateSettings = await getTemplateSettings(ctx, userId);
+
+    for (const contentType of contentTypes as ContentType[]) {
+      for (const platform of platforms as Platform[]) {
+        if (!isValidPlatform(platform, customerData)) continue;
+
+        //add type-safety for content later
+        const content = await generateContentForPlatform(
+          contentType,
+          platform,
+          customerData,
+          {
+            name: "AutoDonut", // Hardcoded for now
+            description:
+              "Customizable Donuts with sprinkles, fillings, sauce, marshmallows and more",
+          },
+        );
+        let templateId = getTemplateId(templateSettings, platform);
+        const title = generateTitle(
+          platform,
+          customerData,
+          userId,
+          customerId,
+          args.title,
+        );
+
+        //Then I'll just go over it slowly and make notes
+        //then implement  the myth type and the UI. no need for api, i can just add the string to the array for types where it is currently hard coded
+
+        const formattedContent = formatContent(
+          contentType,
+          platform,
+          customerData,
+          content,
+        );
+
+        //do this better later
+        if (contentType === "myth") {
+          templateId = "DAGLh9LXWSk";
+        }
+
+        const result = await callCanvaAPI(
+          canvaAccessToken,
+          templateId,
+          formattedContent,
+          title,
+        );
+
+        results.push({
+          platform,
+          jobId: result.job.id,
+          status: result.job.status,
+          title,
+          type: contentType,
+        });
+      }
     }
 
-    // Fetch custom template settings
-    const templateSettings = await ctx.runQuery(
-      internal.brandTemplateSettings.getBrandTemplateSettingsInternal,
-      { userId },
-    );
-
-    // Helper function to get the appropriate template ID
-    const getTemplateId = (platform: keyof typeof DEFAULT_TEMPLATE_IDS) => {
-      if (templateSettings) {
-        const customId =
-          templateSettings[
-            `${platform.toLowerCase()}TemplateId` as keyof typeof templateSettings
-          ];
-        return customId || DEFAULT_TEMPLATE_IDS[platform];
-      }
-      return DEFAULT_TEMPLATE_IDS[platform];
-    };
-
-    // Helper function to generate a title
-    const generateTitle = (platform: string) => {
-      return `${platform.charAt(0).toUpperCase() + platform.slice(1)} Campaign - ${customerData.firstName} ${customerData.lastName} - User:${userId} Customer:${customerId}`;
-    };
-
-    try {
-      // EMAIL
-      const emailTemplateId = getTemplateId("EMAIL");
-      const emailTitle = generateTitle("email");
-      const emailResult = await callCanvaAutofillAPI(
-        emailTemplateId as string,
-        {
-          firstName: { type: "text", text: customerData.firstName },
-          lastName: { type: "text", text: customerData.lastName },
-          email: { type: "text", text: customerData.email },
-          preferences: {
-            type: "text",
-            text: customerData.preferences?.join(", ") || "",
-          },
-        },
-        canvaAccessToken,
-        emailTitle,
-      );
-      results.push({
-        platform: "email",
-        jobId: emailResult.job.id,
-        status: emailResult.job.status,
-        title: emailTitle,
-        type: "general",
-      });
-
-      // IG
-
-      if (customerData.instagramHandle) {
-        const firstPreference = customerData.preferences?.[0];
-
-        const instagramTemplateId = getTemplateId("INSTAGRAM");
-        const instagramTitle = generateTitle("instagram");
-        const instagramResult = await callCanvaAutofillAPI(
-          instagramTemplateId as string,
-          {
-            firstName: { type: "text", text: customerData.firstName },
-            instagramHandle: {
-              type: "text",
-              text: customerData.instagramHandle,
-            },
-            preferences: {
-              type: "text",
-              text: `made for all my ${firstPreference || "vanilla"} lovers`,
-            },
-          },
-          canvaAccessToken,
-          instagramTitle,
-        );
-        results.push({
-          platform: "instagram",
-          jobId: instagramResult.job.id,
-          status: instagramResult.job.status,
-          title: instagramTitle,
-          type: "general",
-        });
-      }
-
-      // TWITTER
-      if (customerData.twitterHandle) {
-        const twitterTemplateId = getTemplateId("TWITTER");
-        const twitterTitle = generateTitle("twitter");
-        const twitterResult = await callCanvaAutofillAPI(
-          twitterTemplateId as string,
-          {
-            firstName: { type: "text", text: customerData.firstName },
-            twitterHandle: { type: "text", text: customerData.twitterHandle },
-            preferences: {
-              type: "text",
-              text: customerData.preferences?.join(", ") || "",
-            },
-          },
-          canvaAccessToken,
-          twitterTitle,
-        );
-        results.push({
-          platform: "twitter",
-          jobId: twitterResult.job.id,
-          status: twitterResult.job.status,
-          title: twitterTitle,
-          type: "general",
-        });
-      }
-
-      // TIKTOK
-      if (customerData.tiktokHandle) {
-        const tiktokTemplateId = getTemplateId("TIKTOK");
-        const tiktokTitle = generateTitle("tiktok");
-
-        //seemed to work fine. Issues however with the actual content and the fact that the input is static
-        const quizContent = await ctx.runAction(
-          internal.aiGeneration.text.generateQuizContent,
-          {
-            brandName: "AutoDonut", // Replace with actual brand name
-            brandDescription:
-              "DonutAuto is a cutting-edge automated marketing platform specializing in the food and beverage        industry, with a particular focus on donut shops and bakeries. We combine AI-driven content generation with Canva's design capabilities to create personalized, mouth-watering marketing campaigns that help small to medium-sized donut businesses increase their online presence and customer engagement. Our platform streamlines the creation of eye-catching social media posts, email campaigns, and digital ads, allowing donut shop owners to focus on what they do best - creating delicious treats. With DonutAuto, every sprinkle, glaze, and filling gets the attention it deserves in the digital world", // Replace with actual description
-            preferences: customerData.preferences || [],
-            location: customerData.location || "",
-            firstName: customerData.firstName,
-          },
-        );
-
-        const tiktokResult = await callCanvaAutofillAPI(
-          tiktokTemplateId as string,
-          {
-            firstName: {
-              type: "text",
-              text: `Hey ${customerData.firstName} if you get this question right you'll get:`,
-            },
-            handle: { type: "text", text: customerData.tiktokHandle },
-            preferences: {
-              type: "text",
-              text: customerData.preferences?.[0] || "",
-            },
-            deal: {
-              type: "text",
-              text: quizContent.deal,
-            },
-            question: {
-              type: "text",
-              text: quizContent.question,
-            },
-            answerOne: {
-              type: "text",
-              text: quizContent.answerOne,
-            },
-            answerTwo: {
-              type: "text",
-              text: quizContent.answerTwo,
-            },
-            answerThree: {
-              type: "text",
-              text: quizContent.answerThree,
-            },
-          },
-          canvaAccessToken,
-          tiktokTitle,
-        );
-
-        results.push({
-          platform: "tiktok",
-          jobId: tiktokResult.job.id,
-          status: tiktokResult.job.status,
-          title: tiktokTitle,
-          type: "quiz",
-        });
-      }
-    } catch (error) {
-      console.error("Error generating campaign:", error);
-      throw new Error("Failed to generate campaign. Please try again later.");
-    }
-
-    await ctx.runMutation(
-      internal.campaigns.campaignFunctions.saveCampaignResults,
-      {
-        customerId,
-        results,
-        userId,
-        organizationId: args.organizationId,
-        customerName: `${customerData.firstName} `,
-        title: args.title,
-      },
+    await saveCampaignResults(
+      ctx,
+      customerId,
+      results,
+      userId,
+      organizationId,
+      customerData,
+      args.title,
     );
 
     console.log(
@@ -239,6 +121,28 @@ export const generateCampaignAction = internalAction({
     return results;
   },
 });
+
+export async function saveCampaignResults(
+  ctx: any,
+  customerId: Id<"customers">,
+  results: any[],
+  userId: Id<"users">,
+  organizationId: Id<"organizations">,
+  customerData: any,
+  title: string,
+) {
+  await ctx.runMutation(
+    internal.campaigns.campaignFunctions.saveCampaignResults,
+    {
+      customerId,
+      results,
+      userId,
+      organizationId,
+      customerName: `${customerData.firstName} ${customerData.lastName}`,
+      title,
+    },
+  );
+}
 
 export const checkAutofillJob = internalAction({
   args: {

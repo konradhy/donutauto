@@ -67,7 +67,6 @@ export const getBrandTemplateSettingsInternal = internalQuery({
       .filter((q) => q.eq(q.field("userId"), args.userId))
       .unique();
 
-    console.log("Retrieved template settings:", settings); // For debugging
     return settings;
   },
 });

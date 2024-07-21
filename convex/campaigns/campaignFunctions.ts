@@ -39,8 +39,8 @@ export const generateCampaign = mutation({
       `Starting campaign generation for customer: ${customer.firstName} ${customer.lastName}`,
     );
 
-    // Schedule the campaign generation action
-    //TODO: if this fails we should throw an error to the ui
+    const contentTypes = ["quiz", "myth"];
+    const platforms = ["tiktok"];
     try {
       await ctx.scheduler.runAfter(
         0,
@@ -50,28 +50,17 @@ export const generateCampaign = mutation({
           customerData,
           userId: user._id,
           organizationId: organization._id,
+          contentTypes,
+          platforms,
           title:
             args.title ||
             `${customer.firstName} ${customer.lastName}'s general Package`,
         },
       );
 
-      // Log the activity
-
       return { message: "Campaign generation started" };
     } catch (error) {
       console.error("Failed to start campaign generation:", error);
-
-      // await logActivityHelper(ctx,
-      //   user._id,
-      //   organization._id,
-      //   ActivityTypes.CAMPAIGN_GENERATION_FAILED,
-      //   {
-      //     customerName: `${customer.firstName} ${customer.lastName}`,
-      //     customerId: args.customerId,
-      //     error: error.message,
-      //   }
-      // );
 
       throw new Error("Failed to start campaign generation. Please try again.");
     }
@@ -131,6 +120,9 @@ export const generateCampaigns = mutation({
           );
 
           // Schedule the campaign generation action
+          const contentTypes = ["quiz"];
+          const platforms = ["tiktok"];
+
           await ctx.scheduler.runAfter(
             5000, // 5 seconds to help with rate limiting
             internal.campaigns.campaignActions.generateCampaignAction,
@@ -139,6 +131,8 @@ export const generateCampaigns = mutation({
               customerData,
               userId: user._id,
               organizationId: organization._id,
+              contentTypes,
+              platforms,
               title: args.title
                 ? `${args.title} - ${customer.firstName}`
                 : `${customer.firstName} ${customer.lastName}'s General Package`,

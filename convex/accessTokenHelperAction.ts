@@ -53,17 +53,6 @@ export const refreshCanvaToken = internalAction({
       `${CANVA_CLIENT_ID}:${CANVA_CLIENT_SECRET}`,
     );
 
-    console.log("Attempting to refresh token with:");
-    console.log("Token Endpoint:", TOKEN_ENDPOINT);
-    console.log(
-      "Auth Header (partially masked):",
-      authHeader.substr(0, 10) + "...",
-    );
-    console.log(
-      "Refresh Token (partially masked):",
-      refreshToken.substr(0, 10) + "...",
-    );
-
     const body = new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
@@ -79,11 +68,7 @@ export const refreshCanvaToken = internalAction({
         body: body,
       });
 
-      console.log("Response status:", response.status);
-      console.log("Response headers:", JSON.stringify(response.headers));
-
       const responseText = await response.text();
-      console.log("Response body:", responseText);
 
       if (!response.ok) {
         throw new Error(

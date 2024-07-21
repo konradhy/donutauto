@@ -30,10 +30,12 @@ export const generateQuizContent = internalAction({
     `;
 
     const response = await openai.chat.completions.create({
-      model: "GPT-4o-mini",
+      model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [{ role: "user", content: prompt }],
     });
+
+    console.log("Response received:", JSON.stringify(response, null, 2));
 
     return JSON.parse(response.choices[0].message.content || "{}");
   },

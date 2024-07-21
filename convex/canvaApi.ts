@@ -1,11 +1,11 @@
-
 export async function callCanvaAutofillAPI(
   templateId: string,
   data: any,
   accessToken: string,
   title: string,
 ) {
-  const maxRetries = 3;
+  // TODO: increase maxRetries at the end of development. No need to overly stress the Canva API during development.
+  const maxRetries = 1;
   let attempts = 0;
 
   const delay = (ms: number) =>
@@ -27,6 +27,7 @@ export async function callCanvaAutofillAPI(
       });
 
       if (!response.ok) {
+        console.log("response", response);
         throw new Error(`Canva API error: ${response.statusText}`);
       }
 
