@@ -1,7 +1,7 @@
 import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import { Id } from "../_generated/dataModel";
+import { Id, Doc } from "../_generated/dataModel";
 
 import { ContentType, Platform } from "./campaignActionHelpers";
 import { initializeCanvaConnection } from "./campaignActionHelpers";
@@ -12,7 +12,15 @@ import { generateContentForPlatform } from "./campaignActionHelpers";
 import { callCanvaAPI } from "./campaignActionHelpers";
 import { isValidPlatform } from "./campaignActionHelpers";
 import { formatContent } from "./campaignActionHelpers";
+import { generateDallePrompt } from "./content/openAIService";
+import { generateDalleImage } from "./content/openAIService";
+import { uploadCanvaAsset, waitForAssetUpload } from "../canvaApi";
 
+const brandData = {
+  name: "AutoDonut",
+  description:
+    "Customizable Donuts with sprinkles, fillings, sauce, marshmallows and more",
+};
 export const generateCampaignAction = internalAction({
   args: {
     customerId: v.id("customers"),
@@ -46,7 +54,8 @@ export const generateCampaignAction = internalAction({
 
     const canvaAccessToken = await initializeCanvaConnection(ctx, userId);
 
-    const templateSettings = await getTemplateSettings(ctx, userId);
+    const templateSettings: Doc<"brandTemplateSettings"> =
+      await getTemplateSettings(ctx, userId);
 
     for (const contentType of contentTypes as ContentType[]) {
       for (const platform of platforms as Platform[]) {
@@ -57,13 +66,15 @@ export const generateCampaignAction = internalAction({
           contentType,
           platform,
           customerData,
-          {
-            name: "AutoDonut", // Hardcoded for now
-            description:
-              "Customizable Donuts with sprinkles, fillings, sauce, marshmallows and more",
-          },
+          brandData,
         );
-        let templateId = getTemplateId(templateSettings, platform);
+
+        //okay going to stop here.
+        //I need to get the right template ID. I think now it is actally wiser to pass in both the expected contenty typee and platform and grab it based on that.
+        //My idea of using the specific id, doesn't work because it's being called  from a ui that will ask me to select which content types and platformas i want anyway.
+        //so doing it this way does make it simpler.
+        let templateId = getTemplateId(templateSettings, platform, contentType);
+
         const title = generateTitle(
           platform,
           customerData,
@@ -71,15 +82,28 @@ export const generateCampaignAction = internalAction({
           customerId,
           args.title,
         );
+        console.log("templateId", templateId);
 
-        //Then I'll just go over it slowly and make notes
-        //then implement  the myth type and the UI. no need for api, i can just add the string to the array for types where it is currently hard coded
+        let assetId: string | undefined;
+        if (contentType === "myth") {
+          console.log("myth content");
+          const dallePrompt = generateDallePrompt(content, brandData);
+          const imageData = await generateDalleImage(dallePrompt);
+          const assetUploadJob = await uploadCanvaAsset(
+            canvaAccessToken,
+            imageData,
+          );
+          assetId = await waitForAssetUpload(canvaAccessToken, assetUploadJob);
+
+          templateId = "DAGLh9LXWSk"; // Specific template for myth content
+        }
 
         const formattedContent = formatContent(
           contentType,
           platform,
           customerData,
           content,
+          assetId,
         );
 
         //do this better later
@@ -93,6 +117,7 @@ export const generateCampaignAction = internalAction({
           formattedContent,
           title,
         );
+        console.log("result", result);
 
         results.push({
           platform,

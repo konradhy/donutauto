@@ -4,10 +4,9 @@ import { generateMythContent } from "./mythContent";
 // import { generateGeneralContent } from "./generalContent";
 // import { generateJokeContent } from "./jokeContent";
 // import { generateCustomContent } from "./customContent";
+import { Platform, ContentType } from "../campaignActionHelpers";
 
-type ContentType = "quiz" | "fact" | "myth" | "general" | "joke" | "custom";
-type Platform = "email" | "instagram" | "twitter" | "tiktok";
-
+//just use a Doc<"customers"> instead
 interface CustomerData {
   firstName: string;
   lastName: string;

@@ -1,3 +1,5 @@
+//Consider strongly if I still need this. Did I forget to deprecate it? Compare with accessTokenHelper.ts
+
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { ConvexError } from "convex/values";
@@ -52,6 +54,7 @@ export const setAccessToken = mutation({
 /**
  * Retrieves the Canva access token for the current user.
  */
+
 export const getAccessToken = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();

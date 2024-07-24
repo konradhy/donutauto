@@ -1,23 +1,53 @@
 import { internal } from "../_generated/api";
-import { Id } from "../_generated/dataModel";
+import { Doc, Id } from "../_generated/dataModel";
 import { callCanvaAutofillAPI } from "../canvaApi";
 import { generateContent } from "./content/contentGenerator";
 
 export const DEFAULT_TEMPLATE_IDS = {
-  EMAIL: "DAGKfYlVZgQ",
-  INSTAGRAM: "DAGKfYlVZgQ",
-  TWITTER: "DAGKfYlVZgQ",
-  TIKTOK: "DAGKfYlVZgQ",
+  email: "DAGKfYlVZgQ",
+  templates: {
+    quiz: {
+      igReels: "DAGKfYlVZgQ",
+      tiktokVideo: "DAGKfYlVZgQ",
+      igPost: "DAGKfYlVZgQ",
+      twitterPost: "DAGKfYlVZgQ",
+    },
+    fact: {
+      igReels: "DAGKfYlVZgQ",
+      tiktokVideo: "DAGKfYlVZgQ",
+      igPost: "DAGKfYlVZgQ",
+      twitterPost: "DAGKfYlVZgQ",
+    },
+    general: {
+      igReels: "DAGKfYlVZgQ",
+      tiktokVideo: "DAGKfYlVZgQ",
+      igPost: "DAGKfYlVZgQ",
+      twitterPost: "DAGKfYlVZgQ",
+    },
+    myth: {
+      igReels: "DAGKfYlVZgQ",
+      tiktokVideo: "DAGKfYlVZgQ",
+      igPost: "DAGKfYlVZgQ",
+      twitterPost: "DAGKfYlVZgQ",
+    },
+    custom: {
+      igReels: "DAGKfYlVZgQ",
+      tiktokVideo: "DAGKfYlVZgQ",
+      igPost: "DAGKfYlVZgQ",
+      twitterPost: "DAGKfYlVZgQ",
+    },
+  },
 };
 
-export type Platform = "email" | "instagram" | "twitter" | "tiktok";
-export type ContentType =
-  | "quiz"
-  | "fact"
-  | "myth"
-  | "general"
-  | "joke"
-  | "custom";
+export type Platforms = "email" | "instagram" | "twitter" | "tiktok"; //deprecated
+export type Platform =
+  | "igReels"
+  | "tiktokVideo"
+  | "igPost"
+  | "twitterPost"
+  | "email";
+
+export type ContentType = "quiz" | "fact" | "myth" | "general" | "custom";
 
 export async function initializeCanvaConnection(
   ctx: any,
@@ -44,24 +74,22 @@ export async function getTemplateSettings(ctx: any, userId: Id<"users">) {
 }
 
 export function getTemplateId(
-  templateSettings: any,
+  templateSettings: Doc<"brandTemplateSettings">,
   platform: Platform,
+  contentType: ContentType,
 ): string {
-  if (templateSettings) {
-    const customId =
-      templateSettings[
-        `${platform.toLowerCase()}TemplateId` as keyof typeof templateSettings
-      ];
-    return (
-      customId ||
-      DEFAULT_TEMPLATE_IDS[
-        platform.toUpperCase() as keyof typeof DEFAULT_TEMPLATE_IDS
-      ]
-    );
+  if (templateSettings && templateSettings.templates) {
+    if (platform === "email") {
+      return templateSettings.emailTemplateId || DEFAULT_TEMPLATE_IDS.email;
+    }
+
+    const customId = templateSettings.templates[contentType][platform];
+    return customId || DEFAULT_TEMPLATE_IDS.templates[contentType][platform];
   }
-  return DEFAULT_TEMPLATE_IDS[
-    platform.toUpperCase() as keyof typeof DEFAULT_TEMPLATE_IDS
-  ];
+  if (platform === "email") {
+    return DEFAULT_TEMPLATE_IDS.email;
+  }
+  return DEFAULT_TEMPLATE_IDS.templates[contentType][platform];
 }
 
 export function generateTitle(
@@ -99,11 +127,11 @@ export function isValidPlatform(
   customerData: any,
 ): boolean {
   switch (platform) {
-    case "instagram":
+    case "igReels":
       return !!customerData.instagramHandle;
-    case "twitter":
+    case "twitterPost":
       return !!customerData.twitterHandle;
-    case "tiktok":
+    case "tiktokVideo":
       return !!customerData.tiktokHandle;
     default:
       return true;
@@ -115,6 +143,7 @@ export function formatContent(
   platform: Platform,
   customerData: any,
   content: any,
+  assetId: string | undefined,
 ) {
   switch (contentType) {
     case "quiz":
@@ -135,7 +164,9 @@ export function formatContent(
         answerThree: { type: "text", text: content.options[2] },
       };
     case "myth":
+      console.log("assetId", assetId);
       return {
+        background: { type: "image", asset_id: assetId as string },
         mythOne: { type: "text", text: content.mythOne },
         brand: { type: "text", text: customerData.brandName || "AutoDonut" },
         mythTwo: { type: "text", text: content.mythTwo },
@@ -155,11 +186,11 @@ export function formatContent(
 
 function getHandle(platform: Platform, customerData: any): string {
   switch (platform) {
-    case "instagram":
+    case "igReels":
       return customerData.instagramHandle || "";
-    case "twitter":
+    case "twitterPost":
       return customerData.twitterHandle || "";
-    case "tiktok":
+    case "tiktokVideo":
       return customerData.tiktokHandle || "";
     case "email":
       return customerData.email;

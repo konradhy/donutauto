@@ -34,17 +34,46 @@ export const getBrandTemplateSettingsOrg = query({
 //updates your personal settings
 export const updateBrandTemplateSettings = mutation({
   args: {
+    templates: v.object({
+      quiz: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      fact: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      general: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      myth: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      custom: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+    }),
     emailTemplateId: v.optional(v.string()),
-    instagramTemplateId: v.optional(v.string()),
-    twitterTemplateId: v.optional(v.string()),
-    tiktokTemplateId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
     const existingSettings = await ctx.db
       .query("brandTemplateSettings")
-      .filter((q) => q.eq(q.field("userId"), user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .unique();
 
     if (existingSettings) {
@@ -52,8 +81,8 @@ export const updateBrandTemplateSettings = mutation({
     } else {
       await ctx.db.insert("brandTemplateSettings", {
         userId: user._id,
-        ...args,
         organizationId: organization._id,
+        ...args,
       });
     }
   },

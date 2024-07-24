@@ -7,6 +7,7 @@ import {
   logInternalActivity,
 } from "../activities/activityHelpers";
 import { ActivityTypes } from "../activities/activityHelpers";
+import { Platform } from "./campaignActionHelpers";
 
 export const generateCampaign = mutation({
   args: { customerId: v.id("customers"), title: v.optional(v.string()) },
@@ -40,7 +41,7 @@ export const generateCampaign = mutation({
     );
 
     const contentTypes = ["quiz", "myth"];
-    const platforms = ["tiktok"];
+    const platforms: Platform[] = ["tiktokVideo"];
     try {
       await ctx.scheduler.runAfter(
         0,
