@@ -174,3 +174,39 @@ export const acceptInvitation = mutation({
     return invitation.organizationId;
   },
 });
+
+export const getBrandDetails = query({
+  args: {},
+  handler: async (ctx) => {
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+
+    return {
+      name: organization.brandName || "",
+      products: organization.brandProducts || [""],
+      description: organization.brandDescription || "",
+    };
+  },
+});
+
+//didn't realize i could do this.
+const brandDetailsSchema = v.object({
+  name: v.string(),
+  products: v.array(v.string()),
+  description: v.string(),
+});
+
+export const updateBrandDetails = mutation({
+  args: { brandDetails: brandDetailsSchema },
+  handler: async (ctx, args) => {
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+
+    // Update the organization with new brand details
+    await ctx.db.patch(organization._id, {
+      brandName: args.brandDetails.name,
+      brandProducts: args.brandDetails.products,
+      brandDescription: args.brandDetails.description,
+    });
+
+    return { success: true };
+  },
+});

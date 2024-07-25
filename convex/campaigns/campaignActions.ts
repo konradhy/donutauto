@@ -15,6 +15,7 @@ import { formatContent } from "./campaignActionHelpers";
 import { generateDallePrompt } from "./content/openAIService";
 import { generateDalleImage } from "./content/openAIService";
 import { uploadCanvaAsset, waitForAssetUpload } from "../canvaApi";
+import { saveCampaignResults } from "./campaignActionHelpers";
 
 const brandData = {
   name: "AutoDonut",
@@ -40,6 +41,8 @@ export const generateCampaignAction = internalAction({
     }),
     contentTypes: v.array(v.string()),
     platforms: v.array(v.string()),
+    imageInstructions: v.optional(v.string()),
+    aiInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const {
@@ -93,7 +96,11 @@ export const generateCampaignAction = internalAction({
           console.log("myth content");
 
           //this isn't right. dalle should be an option for all contenty types
-          const dallePrompt = generateDallePrompt(content, brandData);
+          const dallePrompt = generateDallePrompt(
+            content,
+            brandData,
+            args.imageInstructions,
+          );
           const imageData = await generateDalleImage(dallePrompt);
           const assetUploadJob = await uploadCanvaAsset(
             canvaAccessToken,
@@ -145,28 +152,6 @@ export const generateCampaignAction = internalAction({
     return results;
   },
 });
-
-export async function saveCampaignResults(
-  ctx: any,
-  customerId: Id<"customers">,
-  results: any[],
-  userId: Id<"users">,
-  organizationId: Id<"organizations">,
-  customerData: any,
-  title: string,
-) {
-  await ctx.runMutation(
-    internal.campaigns.campaignFunctions.saveCampaignResults,
-    {
-      customerId,
-      results,
-      userId,
-      organizationId,
-      customerName: `${customerData.firstName} ${customerData.lastName}`,
-      title,
-    },
-  );
-}
 
 export const checkAutofillJob = internalAction({
   args: {

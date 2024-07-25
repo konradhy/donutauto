@@ -1,18 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Link2Off } from "lucide-react";
-import { CanvaIcon } from "@/components/canva-icon";
-
 import { getCanvaAuthorization, revoke } from "@/lib/services/auth";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 
 export const ConnectButton = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Add Convex query to check isConnected status
   const isConnected = useQuery(api.canvaAuth.isConnected);
 
   const onConnectClick = async () => {
@@ -23,13 +22,14 @@ export const ConnectButton = () => {
 
       if (result) {
         if (isConnected) {
-          //toast message
+          toast.success("Connected to Canva successfully!");
         }
       } else {
         throw new Error("Authorization failed");
       }
     } catch (error) {
       console.error(error);
+      toast.error("Failed to connect to Canva");
     } finally {
       setIsLoading(false);
     }
@@ -37,16 +37,17 @@ export const ConnectButton = () => {
 
   const onRevokeClick = async () => {
     try {
+      setIsLoading(true);
       const result = await revoke();
 
       if (result.success) {
-        //toast message
-        console.log("Authorization revoked");
+        toast.success("Disconnected from Canva successfully");
       } else {
-        console.error("Failed to revoke authorization:", result.message);
+        toast.error(`Failed to disconnect: ${result.message}`);
       }
     } catch (error) {
       console.error("Error during revoke:", error);
+      toast.error("An error occurred while disconnecting");
     } finally {
       setIsLoading(false);
     }
@@ -58,9 +59,15 @@ export const ConnectButton = () => {
       onClick={() => {
         void onRevokeClick();
       }}
+      disabled={isLoading}
       className="w-full"
     >
-      <Link2Off className="mr-2 h-4 w-4" /> DISCONNECT FROM CANVA
+      {isLoading ? (
+        <span className="loading loading-spinner mr-2"></span>
+      ) : (
+        <Link2Off className="mr-2 h-4 w-4" />
+      )}
+      DISCONNECT FROM CANVA
     </Button>
   ) : (
     <Button
@@ -69,14 +76,20 @@ export const ConnectButton = () => {
         void onConnectClick();
       }}
       disabled={isLoading}
-      className="w-full"
+      className="w-full flex items-center justify-center"
     >
       {isLoading ? (
-        <span className="loading loading-spinner"></span>
+        <span className="loading loading-spinner mr-2"></span>
       ) : (
-        <CanvaIcon width={24} height={24} />
+        <Image
+          src="/canva-logo.svg"
+          alt="Canva Logo"
+          width={24}
+          height={24}
+          className="m-[8px]"
+        />
       )}
-      <span className="m-2">CONNECT TO CANVA</span>
+      <span>CONNECT TO CANVA</span>
     </Button>
   );
 };

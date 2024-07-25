@@ -28,6 +28,9 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     invitationCode: v.optional(v.string()),
+    brandName: v.optional(v.string()),
+    brandDescription: v.optional(v.string()),
+    brandProducts: v.optional(v.array(v.string())),
   }),
 
   invitations: defineTable({

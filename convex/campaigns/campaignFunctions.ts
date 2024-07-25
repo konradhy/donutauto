@@ -31,7 +31,7 @@ export const generateCampaign = mutation({
         v.literal("email"),
       ),
     ),
-    backgroundInstructions: v.optional(v.string()),
+    imageInstructions: v.optional(v.string()),
     aiInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -63,8 +63,6 @@ export const generateCampaign = mutation({
       `Starting campaign generation for customer: ${customer.firstName} ${customer.lastName}`,
     );
 
-    const contentTypes = ["quiz", "myth"];
-    const platforms: Platform[] = ["tiktokVideo"];
     try {
       await ctx.scheduler.runAfter(
         0,
@@ -76,6 +74,8 @@ export const generateCampaign = mutation({
           organizationId: organization._id,
           contentTypes: args.contentTypes,
           platforms: args.platforms,
+          imageInstructions: args.imageInstructions,
+          aiInstructions: args.aiInstructions,
           title:
             args.title + " - " + customer.firstName + " " + customer.lastName,
         },
@@ -112,7 +112,7 @@ export const generateCampaigns = mutation({
         v.literal("email"),
       ),
     ),
-    backgroundInstructions: v.optional(v.string()),
+    imageInstructions: v.optional(v.string()),
     aiInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -174,6 +174,8 @@ export const generateCampaigns = mutation({
               organizationId: organization._id,
               contentTypes: args.contentTypes,
               platforms: args.platforms,
+              imageInstructions: args.imageInstructions,
+              aiInstructions: args.aiInstructions,
               title:
                 args.title +
                 " - " +
@@ -269,7 +271,7 @@ export const saveCampaignResults = internalMutation({
         jobId: result.jobId,
         status: result.status,
         updatedAt: Date.now(),
-        title: result.title,
+        title: result.title + "-" + result.type,
         userId: args.userId,
         organizationId: args.organizationId,
         type: result.type,
@@ -284,5 +286,28 @@ export const saveCampaignResults = internalMutation({
     });
 
     return campaignId;
+  },
+});
+
+export const getCampaignById = query({
+  args: { campaignId: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+
+    const campaign = await ctx.db
+      .query("campaigns")
+      .withIndex("by_organization", (q) =>
+        q.eq("organizationId", organization._id),
+      )
+      .filter((q) => q.eq(q.field("_id"), args.campaignId))
+      .first();
+
+    if (!campaign) {
+      throw new Error(
+        "Campaign not found or you don't have permission to access it",
+      );
+    }
+
+    return campaign;
   },
 });

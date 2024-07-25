@@ -25,7 +25,10 @@ export async function callOpenAI<T>(
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      console.log(`Attempt ${attempt}: Calling OpenAI with messages:`, messages);
+      console.log(
+        `Attempt ${attempt}: Calling OpenAI with messages:`,
+        messages,
+      );
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: messages,
@@ -62,8 +65,15 @@ export async function callOpenAI<T>(
     }
   }
 
-  console.error(`All ${MAX_RETRIES} attempts failed in ${functionName}. Giving up.`);
-  throw lastError || new Error(`Failed to generate content using OpenAI in ${functionName} after multiple attempts`);
+  console.error(
+    `All ${MAX_RETRIES} attempts failed in ${functionName}. Giving up.`,
+  );
+  throw (
+    lastError ||
+    new Error(
+      `Failed to generate content using OpenAI in ${functionName} after multiple attempts`,
+    )
+  );
 }
 
 export async function generateDalleImage(prompt: string): Promise<string> {
@@ -107,6 +117,12 @@ export async function generateDalleImage(prompt: string): Promise<string> {
   );
 }
 
-export function generateDallePrompt(content: any, brandData: any): string {
-  return `There should be no text in the image. Create a visually striking and professional background image for ${brandData.name}, a donut shop. The image should subtly incorporate elements that represent the following two myths about donuts: "${content.mythOne}" and "${content.mythTwo}". The style should be modern, appetizing, and suitable for a marketing campaign. Avoid any text or logos in the image.`;
+export function generateDallePrompt(
+  content: any,
+  brandData: any,
+  imageInstructions: string | undefined,
+): string {
+  return `Create a simple, clean background image with no text. The image should subtly incorporate elements related to ${brandData.name} which is described as ${brandData.description}. The overall them will preferably reflect concepts or imagery from ${content.mythOne}.
+  Key points: 1. Keep the design minimal and uncluttered 2. Avoid any text or written elements 3. Use soft, muted colors unless specified otherwise 4. Incorporate subtle visual elements that relate to the brand and content 5. Ensure the image works well as a background (not too busy or distracting) {imageInstructions} Remember, the goal is a subtle, professional background that hints at the brand and content themes without overpowering any foreground elements that may be added later.;
+  6. Finally, consider this point which has been suggested by the end user ${imageInstructions}`;
 }

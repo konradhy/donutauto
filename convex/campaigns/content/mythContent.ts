@@ -47,7 +47,7 @@ function createMythPrompt(
     {
       role: "system",
       content:
-        "You are an AI assistant that creates engaging myth-busting content for marketing campaigns. Return the content in JSON format.",
+        "You are an AI assistant that creates engaging myth-busting content for marketing campaigns. The goal is to deploy sound marketing principles.  Return the content in JSON format.",
     },
     {
       role: "user",
@@ -59,9 +59,9 @@ Brand Description: ${brandData.description}
 Brand Products: ${brandData.products?.join(", ") || "Not specified"}
 
 Please generate the following:
-1. Two myths related to the brand or its products
+1. Two myths related to the customer's preferences or the brand/it's products etc. If possible see if you can logically combine the two.
 2. Two facts that bust these myths
-3. A special deal or offer related to the facts
+3. A special deal or offer that gives them a 10% discount. We should use some type of pun related to the myths or facts, if that's not possible then make it related to the brand or products.
 
 Provide the response in a JSON format with the following structure:
 {

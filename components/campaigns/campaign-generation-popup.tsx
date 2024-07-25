@@ -49,7 +49,7 @@ export const CampaignGenerationPopup: React.FC<
     ContentType[]
   >([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
-  const [backgroundInstructions, setBackgroundInstructions] = useState("");
+  const [imageInstructions, setImageInstructions] = useState("");
   const [aiInstructions, setAiInstructions] = useState("");
 
   const generateCampaign = useMutation(
@@ -73,7 +73,7 @@ export const CampaignGenerationPopup: React.FC<
       contentTypes: selectedContentTypes,
       platforms: selectedPlatforms,
       title,
-      backgroundInstructions,
+      imageInstructions,
       aiInstructions,
     };
 
@@ -171,8 +171,8 @@ export const CampaignGenerationPopup: React.FC<
             </Label>
             <Textarea
               id="background"
-              value={backgroundInstructions}
-              onChange={(e) => setBackgroundInstructions(e.target.value)}
+              value={imageInstructions}
+              onChange={(e) => setImageInstructions(e.target.value)}
               className="col-span-3"
             />
           </div>

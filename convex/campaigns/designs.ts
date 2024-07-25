@@ -1,7 +1,7 @@
 import { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery, query } from "../_generated/server";
 import { getCurrentUserAndOrganization } from "../accessControlHelpers";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 
 export const updateDesignAfterAutofill = internalMutation({
@@ -114,8 +114,7 @@ export const getPaginatedDesignsWithCampaigns = query({
         .withSearchIndex("search_designs", (q) =>
           q
             .search("title", args.searchTerm || "")
-            .eq("organizationId", organization._id)
-            ,
+            .eq("organizationId", organization._id),
         );
     } else {
       designsQuery = ctx.db
@@ -138,5 +137,38 @@ export const getPaginatedDesignsWithCampaigns = query({
       ...paginatedDesigns,
       page: designsWithCampaigns,
     };
+  },
+});
+
+export const getDesignById = query({
+  args: {
+    designId: v.id("designs"),
+  },
+  handler: async (ctx, args) => {
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+
+    const design = await ctx.db.get(args.designId);
+    if (organization._id === design?.organizationId) {
+      return design;
+    }
+
+    throw new ConvexError(
+      "Either design does not exist or it does not belong to the organization",
+    );
+  },
+});
+
+export const getDesignsByCampaignId = query({
+  args: { campaignId: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+
+    const designs = await ctx.db
+      .query("designs")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.campaignId))
+      .filter((q) => q.eq(q.field("organizationId"), organization._id))
+      .collect();
+
+    return designs;
   },
 });

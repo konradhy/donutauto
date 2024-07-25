@@ -198,3 +198,25 @@ function getHandle(platform: Platform, customerData: any): string {
       return "";
   }
 }
+
+export async function saveCampaignResults(
+  ctx: any,
+  customerId: Id<"customers">,
+  results: any[],
+  userId: Id<"users">,
+  organizationId: Id<"organizations">,
+  customerData: any,
+  title: string,
+) {
+  await ctx.runMutation(
+    internal.campaigns.campaignFunctions.saveCampaignResults,
+    {
+      customerId,
+      results,
+      userId,
+      organizationId,
+      customerName: `${customerData.firstName} ${customerData.lastName}`,
+      title,
+    },
+  );
+}

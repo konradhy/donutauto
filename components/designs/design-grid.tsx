@@ -1,31 +1,41 @@
 import { Doc } from "@/convex/_generated/dataModel";
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 
 interface DesignGridProps {
   designs: Doc<"designs">[];
+  onDesignClick: (designId: string, event: React.MouseEvent) => void;
 }
 
-export default function DesignGrid({ designs }: DesignGridProps) {
+export default function DesignGrid({
+  designs,
+  onDesignClick,
+}: DesignGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {designs.map((design) => (
-        <Link key={design._id} href={`/designs/${design._id}`}>
-          <DesignCard design={design} />
-        </Link>
+        <DesignCard key={design._id} design={design} onClick={onDesignClick} />
       ))}
     </div>
   );
 }
 
-function DesignCard({ design }: { design: Doc<"designs"> }) {
+function DesignCard({
+  design,
+  onClick,
+}: {
+  design: Doc<"designs">;
+  onClick: (designId: string, event: React.MouseEvent) => void;
+}) {
   const [imgSrc, setImgSrc] = useState(
     design.thumbnailUrl || "/placeholder.jpg",
   );
 
   return (
-    <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white dark:bg-gray-700">
+    <div
+      className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white dark:bg-gray-700 cursor-pointer"
+      onClick={(e) => onClick(design._id, e)}
+    >
       <Image
         src={imgSrc}
         alt={`Design ${design._id}`}
