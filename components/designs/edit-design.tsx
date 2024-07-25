@@ -8,6 +8,8 @@ import { useQuery } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
+const DEFAULT_IMAGE = "/placeholder.jpg";
+
 export const EditDesign = () => {
   const params = useParams();
   const designId = params.designId as Id<"designs">;
@@ -15,13 +17,16 @@ export const EditDesign = () => {
   const router = useRouter();
 
   const design = useQuery(api.campaigns.designs.getDesignById, { designId });
+
   if (!design) {
     return <div>Loading...</div>;
   }
 
   const handleImageError = () => {
-    setImgSrc("/placeholder.jpg");
+    setImgSrc(DEFAULT_IMAGE);
   };
+
+  const imageSource = imgSrc ?? design.thumbnailUrl ?? DEFAULT_IMAGE;
 
   return (
     <div className="container mx-auto p-4 max-w-3xl">
@@ -29,7 +34,7 @@ export const EditDesign = () => {
         <h2 className="text-2xl font-bold mb-3 p-2">{design.title}</h2>
         <CardContent className="p-0">
           <Image
-            src={imgSrc || design.thumbnailUrl}
+            src={imageSource}
             alt={`${design.title}`}
             width={400}
             height={335}
@@ -57,7 +62,7 @@ export const EditDesign = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push(design.editUrl || "/")}
+          onClick={() => router.push(design.editUrl ?? "/")}
           className="flex items-center"
         >
           <Image
