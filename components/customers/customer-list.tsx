@@ -24,17 +24,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CustomerListSkeleton } from "./customer-list-skeleton";
+import { CampaignGenerationPopup } from "../campaigns/campaign-generation-popup";
 
 export function CustomerList() {
   const deleteCustomer = useMutation(api.customers.deleteCustomer);
-  const generateCampaigns = useMutation(
-    api.campaigns.campaignFunctions.generateCampaigns,
-  );
   const [selectedCustomers, setSelectedCustomers] = useState<Id<"customers">[]>(
     [],
   );
   const [customerToDelete, setCustomerToDelete] =
     useState<Id<"customers"> | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [campaignCustomerIds, setCampaignCustomerIds] = useState<
+    Id<"customers">[] | null
+  >(null);
 
   const {
     results: customers,
@@ -69,52 +71,21 @@ export function CustomerList() {
     }
   }, [customerToDelete, deleteCustomer]);
 
-  const handleGenerateCampaign = useCallback(
-    async (customerId: Id<"customers">) => {
-      try {
-        await generateCampaigns({ customerIds: [customerId] });
-        toast.success("Campaign generated successfully! 🎉", {
-          style: { background: "#10B981", color: "white" },
-        });
-      } catch (error) {
-        console.log(error);
-        toast.error(
-          `Failed to generate campaign. Please try again.${(error as Error).message}`,
-          {
-            style: { background: "#EF4444", color: "white" },
-          },
-        );
-      }
-    },
-    [generateCampaigns],
-  );
+  const handleGenerateCampaign = useCallback((customerId: Id<"customers">) => {
+    setCampaignCustomerIds([customerId]);
+    setIsPopupOpen(true);
+  }, []);
 
-  const handleGenerateMultipleCampaigns = useCallback(async () => {
+  const handleGenerateMultipleCampaigns = useCallback(() => {
     if (selectedCustomers.length === 0) {
       toast.error("Please select at least one customer.", {
         style: { background: "#EF4444", color: "white" },
       });
       return;
     }
-
-    try {
-      await generateCampaigns({ customerIds: selectedCustomers });
-      toast.success(
-        `Campaigns generated for ${selectedCustomers.length} customers! 🎉`,
-        {
-          style: { background: "#10B981", color: "white" },
-        },
-      );
-      setSelectedCustomers([]);
-    } catch (error) {
-      toast.error(
-        `Failed to generate campaigns. Please try again: ${(error as Error).message}`,
-        {
-          style: { background: "#EF4444", color: "white" },
-        },
-      );
-    }
-  }, [generateCampaigns, selectedCustomers]);
+    setCampaignCustomerIds(selectedCustomers);
+    setIsPopupOpen(true);
+  }, [selectedCustomers]);
 
   const handleSelectCustomer = (customerId: Id<"customers">) => {
     setSelectedCustomers((prev) =>
@@ -257,7 +228,7 @@ export function CustomerList() {
                               <TooltipTrigger asChild>
                                 <button
                                   onClick={() =>
-                                    void handleGenerateCampaign(customer._id)
+                                    handleGenerateCampaign(customer._id)
                                   }
                                   className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-200 transition-colors duration-150"
                                 >
@@ -288,7 +259,7 @@ export function CustomerList() {
             )}
             <div className="flex space-x-4">
               <button
-                onClick={() => void handleGenerateMultipleCampaigns()}
+                onClick={handleGenerateMultipleCampaigns}
                 className="bg-green-500 text-white px-6 py-2 rounded-full font-medium hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-150 ease-in-out transform hover:-translate-y-1 hover:shadow-lg flex items-center"
                 disabled={selectedCustomers.length === 0}
               >
@@ -306,6 +277,14 @@ export function CustomerList() {
           </div>
         </div>
       </div>
+      <CampaignGenerationPopup
+        isOpen={isPopupOpen}
+        onClose={() => {
+          setIsPopupOpen(false);
+          setCampaignCustomerIds(null);
+        }}
+        customerIds={campaignCustomerIds || []}
+      />
     </div>
   );
 }

@@ -10,7 +10,30 @@ import { ActivityTypes } from "../activities/activityHelpers";
 import { Platform } from "./campaignActionHelpers";
 
 export const generateCampaign = mutation({
-  args: { customerId: v.id("customers"), title: v.optional(v.string()) },
+  args: {
+    customerId: v.id("customers"),
+    title: v.string(),
+    contentTypes: v.array(
+      v.union(
+        v.literal("quiz"),
+        v.literal("fact"),
+        v.literal("myth"),
+        v.literal("general"),
+        v.literal("custom"),
+      ),
+    ),
+    platforms: v.array(
+      v.union(
+        v.literal("igReels"),
+        v.literal("tiktokVideo"),
+        v.literal("igPost"),
+        v.literal("twitterPost"),
+        v.literal("email"),
+      ),
+    ),
+    backgroundInstructions: v.optional(v.string()),
+    aiInstructions: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
@@ -51,11 +74,10 @@ export const generateCampaign = mutation({
           customerData,
           userId: user._id,
           organizationId: organization._id,
-          contentTypes,
-          platforms,
+          contentTypes: args.contentTypes,
+          platforms: args.platforms,
           title:
-            args.title ||
-            `${customer.firstName} ${customer.lastName}'s general Package`,
+            args.title + " - " + customer.firstName + " " + customer.lastName,
         },
       );
 
@@ -71,7 +93,27 @@ export const generateCampaign = mutation({
 export const generateCampaigns = mutation({
   args: {
     customerIds: v.array(v.id("customers")),
-    title: v.optional(v.string()),
+    title: v.string(),
+    contentTypes: v.array(
+      v.union(
+        v.literal("quiz"),
+        v.literal("fact"),
+        v.literal("myth"),
+        v.literal("general"),
+        v.literal("custom"),
+      ),
+    ),
+    platforms: v.array(
+      v.union(
+        v.literal("igReels"),
+        v.literal("tiktokVideo"),
+        v.literal("igPost"),
+        v.literal("twitterPost"),
+        v.literal("email"),
+      ),
+    ),
+    backgroundInstructions: v.optional(v.string()),
+    aiInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
@@ -121,8 +163,6 @@ export const generateCampaigns = mutation({
           );
 
           // Schedule the campaign generation action
-          const contentTypes = ["quiz"];
-          const platforms = ["tiktok"];
 
           await ctx.scheduler.runAfter(
             5000, // 5 seconds to help with rate limiting
@@ -132,11 +172,14 @@ export const generateCampaigns = mutation({
               customerData,
               userId: user._id,
               organizationId: organization._id,
-              contentTypes,
-              platforms,
-              title: args.title
-                ? `${args.title} - ${customer.firstName}`
-                : `${customer.firstName} ${customer.lastName}'s General Package`,
+              contentTypes: args.contentTypes,
+              platforms: args.platforms,
+              title:
+                args.title +
+                " - " +
+                customer.firstName +
+                " " +
+                customer.lastName,
             },
           );
 

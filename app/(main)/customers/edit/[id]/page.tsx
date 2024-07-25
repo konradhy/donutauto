@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Id } from "@/convex/_generated/dataModel";
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 import {
   Instagram,
   Twitter,
@@ -19,6 +19,7 @@ import {
   Save,
 } from "lucide-react";
 import { toast } from "sonner";
+import { CampaignGenerationPopup } from "@/components/campaigns/campaign-generation-popup";
 
 const MINIMUM_SAVING_DURATION = 1000;
 
@@ -46,6 +47,7 @@ export default function CustomerEditPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const savingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
     if (customer) {
@@ -122,21 +124,7 @@ export default function CustomerEditPage() {
 
   const handleGenerateCampaign = () => {
     setIsGenerating(true);
-    void (async () => {
-      try {
-        await generateCampaign({ customerId });
-        toast.success("Campaign generation started! 🎉", {
-          style: { background: "#10B981", color: "white" },
-        });
-      } catch (error) {
-        toast.error("Failed to start campaign generation. Please try again.", {
-          style: { background: "#EF4444", color: "white" },
-        });
-        console.error("Error generating campaign:", error);
-      } finally {
-        setIsGenerating(false);
-      }
-    })();
+    setIsPopupOpen(true);
   };
 
   if (!customer)
@@ -341,14 +329,18 @@ export default function CustomerEditPage() {
             <div className="mt-6 text-center">
               <button
                 onClick={handleGenerateCampaign}
-                disabled={isGenerating}
                 className={`px-6 py-3 bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-lg font-bold rounded-full
-          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out
-          transform hover:-translate-y-1 hover:shadow-lg
-          ${isGenerating ? "opacity-50 cursor-not-allowed" : "hover:from-pink-600 hover:to-indigo-700"}`}
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out
+        transform hover:-translate-y-1 hover:shadow-lg
+        hover:from-pink-600 hover:to-indigo-700`}
               >
-                {isGenerating ? "Baking Campaign..." : "Bake a New Campaign 🎨"}
+                Bake a New Campaign 🎨
               </button>
+              <CampaignGenerationPopup
+                isOpen={isPopupOpen}
+                onClose={() => setIsPopupOpen(false)}
+                customerIds={customerId}
+              />
             </div>
           </div>
         </div>

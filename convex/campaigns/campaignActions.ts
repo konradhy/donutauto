@@ -73,7 +73,11 @@ export const generateCampaignAction = internalAction({
         //I need to get the right template ID. I think now it is actally wiser to pass in both the expected contenty typee and platform and grab it based on that.
         //My idea of using the specific id, doesn't work because it's being called  from a ui that will ask me to select which content types and platformas i want anyway.
         //so doing it this way does make it simpler.
-        let templateId = getTemplateId(templateSettings, platform, contentType);
+        const templateId = getTemplateId(
+          templateSettings,
+          platform,
+          contentType,
+        );
 
         const title = generateTitle(
           platform,
@@ -87,6 +91,8 @@ export const generateCampaignAction = internalAction({
         let assetId: string | undefined;
         if (contentType === "myth") {
           console.log("myth content");
+
+          //this isn't right. dalle should be an option for all contenty types
           const dallePrompt = generateDallePrompt(content, brandData);
           const imageData = await generateDalleImage(dallePrompt);
           const assetUploadJob = await uploadCanvaAsset(
@@ -94,8 +100,6 @@ export const generateCampaignAction = internalAction({
             imageData,
           );
           assetId = await waitForAssetUpload(canvaAccessToken, assetUploadJob);
-
-          templateId = "DAGLh9LXWSk"; // Specific template for myth content
         }
 
         const formattedContent = formatContent(
@@ -105,11 +109,6 @@ export const generateCampaignAction = internalAction({
           content,
           assetId,
         );
-
-        //do this better later
-        if (contentType === "myth") {
-          templateId = "DAGLh9LXWSk";
-        }
 
         const result = await callCanvaAPI(
           canvaAccessToken,
