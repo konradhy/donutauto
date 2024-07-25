@@ -35,6 +35,7 @@ import type * as canvaApi from "../canvaApi.js";
 import type * as canvaAuth from "../canvaAuth.js";
 import type * as crons from "../crons.js";
 import type * as customers from "../customers.js";
+import type * as emails_emailActions from "../emails/emailActions.js";
 import type * as invitations from "../invitations.js";
 import type * as metrics from "../metrics.js";
 import type * as organizations from "../organizations.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   canvaAuth: typeof canvaAuth;
   crons: typeof crons;
   customers: typeof customers;
+  "emails/emailActions": typeof emails_emailActions;
   invitations: typeof invitations;
   metrics: typeof metrics;
   organizations: typeof organizations;
