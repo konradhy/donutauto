@@ -2,13 +2,14 @@
 import { usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DesignGrid from "@/components/designs/design-grid";
 import { DesignGallerySkeleton } from "@/components/designs/design-grid-skeleton";
+import { useRouter } from "next/navigation";
 
 type GroupedDesigns = {
   [key: string]: {
@@ -18,8 +19,10 @@ type GroupedDesigns = {
 };
 
 export default function DesignGallery() {
+  const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { results, status, loadMore } = usePaginatedQuery(
     api.campaigns.designs.getPaginatedDesignsWithCampaigns,
@@ -42,7 +45,11 @@ export default function DesignGallery() {
     debounce((value: string) => setDebouncedSearchTerm(value), 300),
     [],
   );
-
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [results]);
   useEffect(() => {
     debouncedSetSearchTerm(inputValue);
   }, [inputValue, debouncedSetSearchTerm]);
@@ -66,6 +73,15 @@ export default function DesignGallery() {
     {},
   );
 
+  const handleCampaignClick = (campaignId: string) => {
+    router.push(`/campaigns/edit/${campaignId}`);
+  };
+
+  const handleDesignClick = (designId: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent the click from bubbling up to the campaign card
+    router.push(`/designs/edit/${designId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-pink-50 dark:from-gray-900 dark:to-purple-900 p-8">
       <div className="container mx-auto space-y-8">
@@ -82,6 +98,7 @@ export default function DesignGallery() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               className="mb-4"
+              ref={inputRef}
             />
           </CardContent>
         </Card>
@@ -90,7 +107,8 @@ export default function DesignGallery() {
           ([campaignId, { campaign, designs }]) => (
             <Card
               key={campaignId}
-              className="bg-transparent dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300"
+              className="bg-transparent dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+              onClick={() => handleCampaignClick(campaignId)}
             >
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200">
@@ -100,7 +118,10 @@ export default function DesignGallery() {
               <CardContent>
                 <ScrollArea className="w-full whitespace-nowrap rounded-md border">
                   <div className="flex w-max space-x-4 p-4">
-                    <DesignGrid designs={designs} />
+                    <DesignGrid
+                      designs={designs}
+                      onDesignClick={handleDesignClick}
+                    />
                   </div>
                   <ScrollBar orientation="horizontal" />
                 </ScrollArea>

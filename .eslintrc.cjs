@@ -15,6 +15,15 @@ module.exports = {
     tsconfigRootDir: __dirname,
   },
   rules: {
+    //because i'm not convinced it matters
+    "@typescript-eslint/no-misused-promises": [
+      2,
+      {
+        checksVoidReturn: {
+          attributes: false,
+        },
+      },
+    ],
     // All of these overrides ease getting into
     // TypeScript, and can be removed for stricter
     // linting down the line.

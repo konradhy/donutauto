@@ -1,15 +1,27 @@
 import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import { callCanvaAPI } from "../canvaApi";
+import { Id, Doc } from "../_generated/dataModel";
 
-export const DEFAULT_TEMPLATE_IDS = {
-  EMAIL: "DAGKfYlVZgQ",
-  INSTAGRAM: "DAGKfYlVZgQ",
-  TWITTER: "DAGKfYlVZgQ",
-  TIKTOK: "DAGKfYlVZgQ",
+import { ContentType, Platform } from "./campaignActionHelpers";
+import { initializeCanvaConnection } from "./campaignActionHelpers";
+import { getTemplateSettings } from "./campaignActionHelpers";
+import { getTemplateId } from "./campaignActionHelpers";
+import { generateTitle } from "./campaignActionHelpers";
+import { generateContentForPlatform } from "./campaignActionHelpers";
+import { callCanvaAPI } from "./campaignActionHelpers";
+import { isValidPlatform } from "./campaignActionHelpers";
+import { formatContent } from "./campaignActionHelpers";
+import { generateDallePrompt } from "./content/openAIService";
+import { generateDalleImage } from "./content/openAIService";
+import { uploadCanvaAsset, waitForAssetUpload } from "../canvaApi";
+import { saveCampaignResults } from "./campaignActionHelpers";
+
+const brandData = {
+  name: "AutoDonut",
+  description:
+    "Customizable Donuts with sprinkles, fillings, sauce, marshmallows and more",
 };
-
 export const generateCampaignAction = internalAction({
   args: {
     customerId: v.id("customers"),
@@ -25,173 +37,112 @@ export const generateCampaignAction = internalAction({
       instagramHandle: v.optional(v.string()),
       twitterHandle: v.optional(v.string()),
       tiktokHandle: v.optional(v.string()),
+      location: v.optional(v.string()),
     }),
+    contentTypes: v.array(v.string()),
+    platforms: v.array(v.string()),
+    imageInstructions: v.optional(v.string()),
+    aiInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { customerId, userId, customerData } = args;
+    const {
+      customerId,
+      userId,
+      customerData,
+      contentTypes,
+      platforms,
+      organizationId,
+    } = args;
     const results = [];
 
-    let canvaAccessToken;
-    try {
-      canvaAccessToken = await ctx.runAction(
-        internal.accessTokenHelperAction.getCanvaAccessToken,
-        { userId },
-      );
-    } catch (error) {
-      console.error("Failed to get Canva access token:", error);
-      throw new Error(
-        "Unable to access Canva. Please ensure your Canva account is connected.",
-      );
+    const canvaAccessToken = await initializeCanvaConnection(ctx, userId);
+
+    const templateSettings: Doc<"brandTemplateSettings"> =
+      await getTemplateSettings(ctx, userId);
+
+    for (const contentType of contentTypes as ContentType[]) {
+      for (const platform of platforms as Platform[]) {
+        if (!isValidPlatform(platform, customerData)) continue;
+
+        //add type-safety for content later
+        const content = await generateContentForPlatform(
+          contentType,
+          platform,
+          customerData,
+          brandData,
+        );
+
+        //okay going to stop here.
+        //I need to get the right template ID. I think now it is actally wiser to pass in both the expected contenty typee and platform and grab it based on that.
+        //My idea of using the specific id, doesn't work because it's being called  from a ui that will ask me to select which content types and platformas i want anyway.
+        //so doing it this way does make it simpler.
+        const templateId = getTemplateId(
+          templateSettings,
+          platform,
+          contentType,
+        );
+
+        const title = generateTitle(
+          platform,
+          customerData,
+          userId,
+          customerId,
+          args.title,
+        );
+        console.log("templateId", templateId);
+
+        let assetId: string | undefined;
+        if (contentType === "myth") {
+          console.log("myth content");
+
+          //this isn't right. dalle should be an option for all contenty types
+          const dallePrompt = generateDallePrompt(
+            content,
+            brandData,
+            args.imageInstructions,
+          );
+          const imageData = await generateDalleImage(dallePrompt);
+          const assetUploadJob = await uploadCanvaAsset(
+            canvaAccessToken,
+            imageData,
+          );
+          assetId = await waitForAssetUpload(canvaAccessToken, assetUploadJob);
+        }
+
+        const formattedContent = formatContent(
+          contentType,
+          platform,
+          customerData,
+          content,
+          assetId,
+        );
+
+        const result = await callCanvaAPI(
+          canvaAccessToken,
+          templateId,
+          formattedContent,
+          title,
+        );
+        console.log("result", result);
+
+        results.push({
+          platform,
+          jobId: result.job.id,
+          status: result.job.status,
+          title,
+          type: contentType,
+        });
+      }
     }
 
-    // Fetch custom template settings
-    const templateSettings = await ctx.runQuery(
-      internal.brandTemplateSettings.getBrandTemplateSettingsInternal,
-      { userId },
-    );
-
-    // Helper function to get the appropriate template ID
-    const getTemplateId = (platform: keyof typeof DEFAULT_TEMPLATE_IDS) => {
-      if (templateSettings) {
-        const customId =
-          templateSettings[
-            `${platform.toLowerCase()}TemplateId` as keyof typeof templateSettings
-          ];
-        return customId || DEFAULT_TEMPLATE_IDS[platform];
-      }
-      return DEFAULT_TEMPLATE_IDS[platform];
-    };
-
-    // Helper function to generate a title
-    const generateTitle = (platform: string) => {
-      return `${platform.charAt(0).toUpperCase() + platform.slice(1)} Campaign - ${customerData.firstName} ${customerData.lastName} - User:${userId} Customer:${customerId}`;
-    };
-
-    try {
-      // EMAIL
-      const emailTemplateId = getTemplateId("EMAIL");
-      const emailTitle = generateTitle("email");
-      const emailResult = await callCanvaAPI(
-        emailTemplateId as string,
-        {
-          firstName: { type: "text", text: customerData.firstName },
-          lastName: { type: "text", text: customerData.lastName },
-          email: { type: "text", text: customerData.email },
-          preferences: {
-            type: "text",
-            text: customerData.preferences?.join(", ") || "",
-          },
-        },
-        canvaAccessToken,
-        emailTitle,
-      );
-      results.push({
-        platform: "email",
-        jobId: emailResult.job.id,
-        status: emailResult.job.status,
-        title: emailTitle,
-        type: "general",
-      });
-
-      // IG
-
-      if (customerData.instagramHandle) {
-        const firstPreference = customerData.preferences?.[0];
-        console.log("First preference:", firstPreference);
-
-        const instagramTemplateId = getTemplateId("INSTAGRAM");
-        const instagramTitle = generateTitle("instagram");
-        const instagramResult = await callCanvaAPI(
-          instagramTemplateId as string,
-          {
-            firstName: { type: "text", text: customerData.firstName },
-            instagramHandle: {
-              type: "text",
-              text: customerData.instagramHandle,
-            },
-            preferences: {
-              type: "text",
-              text: `made for all my ${firstPreference || "vanilla"} lovers`,
-            },
-          },
-          canvaAccessToken,
-          instagramTitle,
-        );
-        results.push({
-          platform: "instagram",
-          jobId: instagramResult.job.id,
-          status: instagramResult.job.status,
-          title: instagramTitle,
-          type: "general",
-        });
-      }
-
-      // TWITTER
-      if (customerData.twitterHandle) {
-        const twitterTemplateId = getTemplateId("TWITTER");
-        const twitterTitle = generateTitle("twitter");
-        const twitterResult = await callCanvaAPI(
-          twitterTemplateId as string,
-          {
-            firstName: { type: "text", text: customerData.firstName },
-            twitterHandle: { type: "text", text: customerData.twitterHandle },
-            preferences: {
-              type: "text",
-              text: customerData.preferences?.join(", ") || "",
-            },
-          },
-          canvaAccessToken,
-          twitterTitle,
-        );
-        results.push({
-          platform: "twitter",
-          jobId: twitterResult.job.id,
-          status: twitterResult.job.status,
-          title: twitterTitle,
-          type: "general",
-        });
-      }
-
-      // TIKTOK
-      if (customerData.tiktokHandle) {
-        const tiktokTemplateId = getTemplateId("TIKTOK");
-        const tiktokTitle = generateTitle("tiktok");
-        const tiktokResult = await callCanvaAPI(
-          tiktokTemplateId as string,
-          {
-            firstName: { type: "text", text: customerData.firstName },
-            tiktokHandle: { type: "text", text: customerData.tiktokHandle },
-            preferences: {
-              type: "text",
-              text: customerData.preferences?.join(", ") || "",
-            },
-          },
-          canvaAccessToken,
-          tiktokTitle,
-        );
-        results.push({
-          platform: "tiktok",
-          jobId: tiktokResult.job.id,
-          status: tiktokResult.job.status,
-          title: tiktokTitle,
-          type: "general",
-        });
-      }
-    } catch (error) {
-      console.error("Error generating campaign:", error);
-      throw new Error("Failed to generate campaign. Please try again later.");
-    }
-
-    await ctx.runMutation(
-      internal.campaigns.campaignFunctions.saveCampaignResults,
-      {
-        customerId,
-        results,
-        userId,
-        organizationId: args.organizationId,
-        customerName: `${customerData.firstName} `,
-        title: args.title,
-      },
+    await saveCampaignResults(
+      ctx,
+      customerId,
+      results,
+      userId,
+      organizationId,
+      customerData,
+      args.title,
     );
 
     console.log(

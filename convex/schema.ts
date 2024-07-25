@@ -28,6 +28,9 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     invitationCode: v.optional(v.string()),
+    brandName: v.optional(v.string()),
+    brandDescription: v.optional(v.string()),
+    brandProducts: v.optional(v.array(v.string())),
   }),
 
   invitations: defineTable({
@@ -107,10 +110,39 @@ export default defineSchema({
   brandTemplateSettings: defineTable({
     organizationId: v.id("organizations"),
     userId: v.id("users"),
+    templates: v.object({
+      quiz: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      fact: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      general: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      myth: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+      custom: v.object({
+        igReels: v.optional(v.string()),
+        tiktokVideo: v.optional(v.string()),
+        igPost: v.optional(v.string()),
+        twitterPost: v.optional(v.string()),
+      }),
+    }),
     emailTemplateId: v.optional(v.string()),
-    instagramTemplateId: v.optional(v.string()),
-    twitterTemplateId: v.optional(v.string()),
-    tiktokTemplateId: v.optional(v.string()),
   })
     .index("by_userId", ["userId"])
     .index("by_organization", ["organizationId"]),

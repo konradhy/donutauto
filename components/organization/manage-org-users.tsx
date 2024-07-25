@@ -29,7 +29,7 @@ export default function ManageOrgUsers() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-pink-50 dark:from-gray-900 dark:to-purple-900 p-8">
+    <div className=" bg-gradient-to-br from-yellow-50 to-pink-50 dark:from-gray-900 dark:to-purple-900 p-8">
       <div className="container mx-auto space-y-8">
         <Card className="bg-transparent dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow duration-300">
           <CardHeader>

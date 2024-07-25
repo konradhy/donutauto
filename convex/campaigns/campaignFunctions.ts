@@ -7,9 +7,33 @@ import {
   logInternalActivity,
 } from "../activities/activityHelpers";
 import { ActivityTypes } from "../activities/activityHelpers";
+import { Platform } from "./campaignActionHelpers";
 
 export const generateCampaign = mutation({
-  args: { customerId: v.id("customers"), title: v.optional(v.string()) },
+  args: {
+    customerId: v.id("customers"),
+    title: v.string(),
+    contentTypes: v.array(
+      v.union(
+        v.literal("quiz"),
+        v.literal("fact"),
+        v.literal("myth"),
+        v.literal("general"),
+        v.literal("custom"),
+      ),
+    ),
+    platforms: v.array(
+      v.union(
+        v.literal("igReels"),
+        v.literal("tiktokVideo"),
+        v.literal("igPost"),
+        v.literal("twitterPost"),
+        v.literal("email"),
+      ),
+    ),
+    imageInstructions: v.optional(v.string()),
+    aiInstructions: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
 
@@ -39,8 +63,6 @@ export const generateCampaign = mutation({
       `Starting campaign generation for customer: ${customer.firstName} ${customer.lastName}`,
     );
 
-    // Schedule the campaign generation action
-    //TODO: if this fails we should throw an error to the ui
     try {
       await ctx.scheduler.runAfter(
         0,
@@ -50,28 +72,18 @@ export const generateCampaign = mutation({
           customerData,
           userId: user._id,
           organizationId: organization._id,
+          contentTypes: args.contentTypes,
+          platforms: args.platforms,
+          imageInstructions: args.imageInstructions,
+          aiInstructions: args.aiInstructions,
           title:
-            args.title ||
-            `${customer.firstName} ${customer.lastName}'s general Package`,
+            args.title + " - " + customer.firstName + " " + customer.lastName,
         },
       );
-
-      // Log the activity
 
       return { message: "Campaign generation started" };
     } catch (error) {
       console.error("Failed to start campaign generation:", error);
-
-      // await logActivityHelper(ctx,
-      //   user._id,
-      //   organization._id,
-      //   ActivityTypes.CAMPAIGN_GENERATION_FAILED,
-      //   {
-      //     customerName: `${customer.firstName} ${customer.lastName}`,
-      //     customerId: args.customerId,
-      //     error: error.message,
-      //   }
-      // );
 
       throw new Error("Failed to start campaign generation. Please try again.");
     }
@@ -81,7 +93,27 @@ export const generateCampaign = mutation({
 export const generateCampaigns = mutation({
   args: {
     customerIds: v.array(v.id("customers")),
-    title: v.optional(v.string()),
+    title: v.string(),
+    contentTypes: v.array(
+      v.union(
+        v.literal("quiz"),
+        v.literal("fact"),
+        v.literal("myth"),
+        v.literal("general"),
+        v.literal("custom"),
+      ),
+    ),
+    platforms: v.array(
+      v.union(
+        v.literal("igReels"),
+        v.literal("tiktokVideo"),
+        v.literal("igPost"),
+        v.literal("twitterPost"),
+        v.literal("email"),
+      ),
+    ),
+    imageInstructions: v.optional(v.string()),
+    aiInstructions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { organization, user } = await getCurrentUserAndOrganization(ctx);
@@ -131,6 +163,7 @@ export const generateCampaigns = mutation({
           );
 
           // Schedule the campaign generation action
+
           await ctx.scheduler.runAfter(
             5000, // 5 seconds to help with rate limiting
             internal.campaigns.campaignActions.generateCampaignAction,
@@ -139,9 +172,16 @@ export const generateCampaigns = mutation({
               customerData,
               userId: user._id,
               organizationId: organization._id,
-              title: args.title
-                ? `${args.title} - ${customer.firstName}`
-                : `${customer.firstName} ${customer.lastName}'s General Package`,
+              contentTypes: args.contentTypes,
+              platforms: args.platforms,
+              imageInstructions: args.imageInstructions,
+              aiInstructions: args.aiInstructions,
+              title:
+                args.title +
+                " - " +
+                customer.firstName +
+                " " +
+                customer.lastName,
             },
           );
 
@@ -231,7 +271,7 @@ export const saveCampaignResults = internalMutation({
         jobId: result.jobId,
         status: result.status,
         updatedAt: Date.now(),
-        title: result.title,
+        title: result.title + "-" + result.type,
         userId: args.userId,
         organizationId: args.organizationId,
         type: result.type,
@@ -246,5 +286,28 @@ export const saveCampaignResults = internalMutation({
     });
 
     return campaignId;
+  },
+});
+
+export const getCampaignById = query({
+  args: { campaignId: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const { organization } = await getCurrentUserAndOrganization(ctx);
+
+    const campaign = await ctx.db
+      .query("campaigns")
+      .withIndex("by_organization", (q) =>
+        q.eq("organizationId", organization._id),
+      )
+      .filter((q) => q.eq(q.field("_id"), args.campaignId))
+      .first();
+
+    if (!campaign) {
+      throw new Error(
+        "Campaign not found or you don't have permission to access it",
+      );
+    }
+
+    return campaign;
   },
 });

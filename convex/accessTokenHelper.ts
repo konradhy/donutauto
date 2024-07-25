@@ -1,4 +1,6 @@
 //TODO: Something is broken. When the token naturally expires and the user tries to make an api call. It doesn't refresh.
+//It can be fixed by using the introspect access token endpoint to check if the token is still valid. If it's not, then refresh it.
+//best placed in the actions folder. Probably unnecessary to implement this in the context of a competition
 
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
@@ -9,7 +11,7 @@ import {
   MutationCtx,
 } from "./_generated/server";
 
-// Internal query to get and check token info
+// Internal query to get user's Canva tokens
 export const getCanvaTokenInfo = internalQuery({
   args: { userId: v.id("users") },
   handler: async (ctx: QueryCtx, args: { userId: Id<"users"> }) => {
